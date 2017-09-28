@@ -63,7 +63,7 @@ stairs.cleaned$no.of.cpt
 stairs.cleaned$cpt
 }
 \seealso{
-\code{\link{segment.mean}}, \code{\link{tguh.decomp}}, \code{\link{tguh.denoise}}, \code{\link{tguh.reconstr}}
+\code{\link{segment.mean}}, \code{\link{hybrid.cpt}}, \code{\link{tguh.decomp}}, \code{\link{tguh.denoise}}, \code{\link{tguh.reconstr}}
 }
 \author{
 Piotr Fryzlewicz, \email{p.fryzlewicz@lse.ac.uk}

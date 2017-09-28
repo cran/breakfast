@@ -36,7 +36,7 @@
 #' \item{cpt}{The estimated locations of change-points in the piecewise-contant mean of \code{x} (these
 #' are the final indices \emph{before} the location of each change-point).}
 #' @author Piotr Fryzlewicz, \email{p.fryzlewicz@@lse.ac.uk}
-#' @seealso \code{\link{segment.mean}}, \code{\link{tguh.decomp}}, \code{\link{tguh.denoise}}, \code{\link{tguh.reconstr}}
+#' @seealso \code{\link{segment.mean}}, \code{\link{hybrid.cpt}}, \code{\link{tguh.decomp}}, \code{\link{tguh.denoise}}, \code{\link{tguh.reconstr}}
 #' @examples
 #' stairs <- rep(1:50, each=10)
 #' stairs.noisy <- stairs + rnorm(500)/5
@@ -71,7 +71,7 @@ tguh.cpt <- function(x, sigma = stats::mad(diff(x)/sqrt(2)), th.const = 1, p = .
 		cpt <- which(abs(diff(est)) > num.zero)
 		no.of.cpt <- length(cpt)
 
-		est <- mean.from.cpt(x, cpt)
+		est <- mean.from.cpts(x, cpt)
 
 	}
 
