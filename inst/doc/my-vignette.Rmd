@@ -1,0 +1,2193 @@
+---
+title: "Vignette for R Breakfast Package"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    number_sections: true
+
+
+
+vignette: >
+  %\VignetteIndexEntry{my-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Executive summary
+
+The *breakfast* package contains a broad range of methods for computationally efficient multiple change-point detection. The main function is *breakfast*. The current version of the package implements the Gaussian mean-shift model, in which the signal is modelled as piecewise constant and is observed in additive noise, which is assumed to be independent, identically distributed Gaussian with zero mean and unknown constant variance. More models will be added in next versions of the package.
+
+Change-point detection in breakfast is carried out in two stages: (i) computation of a solution path, and (ii) model selection along the path. The supported solution paths methods include IDetect, NOT, TGUH, WBS and WBS2, while the supported model selection methods are based on an information criterion (IC), localised pruning (LP), steepest drop to low levels (SDLL), and thresholding. We provide a comparison between different approaches in a comprehensive simulation study. The main findings and recommendations as follows.
+
+* In datasets in which frequent change-points are suspected, we recommend the SDLL model selection criterion, which works particularly well in conjunction with the WBS2 solution path.
+
+* In datasets in which a moderate number of change-points is suspected, we recommend the IC model selection criterion, which works particularly well in conjunction with the IDetect solution path.
+
+* The thresholding model selection criterion works particularly well in conjunction with the IDetect solution path.
+
+* The localised pruning model selection criterion works particularly well in conjunction with the TGUH solution path.
+
+# Methodologies -- a brief description
+
+## Introduction
+
+The *breakfast* package contains a broad range of methods for computationally efficient multiple change-point detection. The current version implements the univariate Gaussian mean-shift model, in which the data are assumed to be a piecewise-constant signal observed with i.i.d. Gaussian noise. Change-point detection in breakfast is carried out in two stages: (i) computation of a solution path, and (ii) model selection along the path. Here a solution path can be understood as a collection of estimated sub-models indexed by certain quantities such as the threshold or the number of change-points.
+
+A variety of solution path and model selection methods are included, which can be accessed individually, or through the *breakfast* function.
+
+* Currently supported solution path methods, with the names of the corresponding functions, are: IDetect (*sol.idetect*), Sequential IDetect (*sol.idetect_seq*), NOT (*sol.not*), TGUH (*sol.tguh*), WBS (*sol.wbs*), and WBS2 (*sol.wbs2*).
+
+* Currently supported model selection methods, with the names of the corresponding functions, are: information criterion (*model.ic*), localised pruning (*model.lp*), steepest drop to low levels (*model.sdll*) and thresholding (*model.thresh*).
+In the following, we briefly describe each the above listed methods.
+
+
+## Solution path methods
+
+### Isolation and Detection (IDetect)
+
+The Isolate-Detect method and its algorithm is described in [Detecting multiple generalized change-points by isolating single ones.](https://arxiv.org/pdf/1901.10852.pdf) A. Anastasiou and P. Fryzlewicz (2019), arXiv preprint.
+
+#### Sequential version
+The key ingredient of Isolate-Detect is the isolation of each of the true change-points within subintervals of the domain. For a positive integer $\lambda_T$, right- and left-expanding intervals are created as follows: the $j^{th}$ right-expanding interval is $R_j = [1,j{\lambda_T}]$, while the $j^{th}$ left-expanding interval is $L_{j} = [T - j\lambda_T + 1,T]$, where $T$ is the length of a given data sequence. We collect these intervals in the ordered set $S_{RL} = \left\lbrace R_1, L_1, R_2, L_2, \ldots,R_K,L_K\right\rbrace$ and firstly we identify the data-point (denoted by $\tilde{b}_1$) of $R_1$ with the largest CUSUM statistic. If this value exceeds a given threshold level, then the algorithm makes a new start from $\tilde{b}_1$. If not, then the process tests the next interval in $S_{RL}$. We stop when all the data sequence has been scanned.
+
+#### Standard version
+We first employ the sequential version of the previous section with a low threshold value (lower than the one used in Section 2.2.1.1). Our aim is to prune the solution path returned from the sequential version through an iterative procedure, where at each iteration the estimation that exists in the solution path and is most likely to be spurious is removed. With $J$ being the length of the solution path given at the first step of this process, the pruning is achieved based on the CUSUM value of each candidate $\hat{r}_j, j=1,2,\ldots, J$, when the interval used is $[\hat{r}_{j-1}+1, \hat{r}_{j+1}]$, where $\hat{r}_0 = 0$ and $\hat{r}_{J+1} = T$.
+
+### Narrowest-over-threshold (NOT)
+
+NOT method and its algorithm is described in [Narrowest‐over‐threshold detection of multiple change points and change‐point‐like features.](https://arxiv.org/abs/1609.00293) R. Baranowski, Y. Chen and P. Fryzlewicz (2019). Journal of Royal Statistical Society Series B, 81: 649--672.
+
+The key ingredient of NOT is its focus on the smallest local sections of the data on which the existence of a change-point is suspected. To give more details, first one randomly draws a large number of subintervals; then given a threshold level, one considers the shortest subintervals above the threshold level, estimate the change-point's location from this subinterval, and performs this step recursively for all the observations to both the left and right of the estimated change-point.
+
+As such, the resulting solution path consists of a collection of estimated models indexed by the threholds. Finally, we remark that NOT is a general method that can be used to detect generalized change-points beyond the mean-shifting model setup.
+
+### Tail greedy unbalanced Haar (TGUH)
+
+The tail-greedy unbalanced Haar (TGUH) algorithm is described in [Tail-greedy bottom-up data decompositions and fast multiple change-point detection.](http://stats.lse.ac.uk/fryzlewicz/tguh/tguh.pdf) P. Fryzlewicz (2018). Annals of Statistics, 46: 3390--3421.
+
+The TGUH algorithm performs bottom-up merges of the data, starting from the regions that are the least likely to contain change-points and progressively moving towards regions that are more likely to contain some. The ‘tail-greediness’ of the decomposition algorithm, whereby multiple greedy steps are taken in a single pass through the data, enables fast computation.
+
+### Wild binary segmentation (WBS)
+
+WBS method and its algorithm is described in [Wild binary segmentation for multiple change-point detection.](http://stats.lse.ac.uk/fryzlewicz/wbs/wbs.pdf) P. Fryzlewicz (2014). The Annals of Statistics, 42: 2243--2281.
+
+To give more details, first one randomly draws a large number of subintervals; then one considers the subintervals with the largest CUSUM statistic values and estimate the change-point's location based on data from this subinterval, and performs this step recursively for all the observations to both the left and right of the estimated change-point.
+
+Thanks to the nested structure, the resulting solution path consists of a collection of models indexed by the number of estimated change-points.
+
+### Wild binary segmentation 2 (WBS2)
+
+WBS2 is described in [Detecting possibly frequent change-points: Wild Binary Segmentation 2 and steepest-drop model selection.](http://stats.lse.ac.uk/fryzlewicz/wbs2/wbs2sdll.pdf) P. Fryzlewicz (2020). Journal of the Korean Statistical Society, to appear. See also this [Rejoinder](http://stats.lse.ac.uk/fryzlewicz/wbs2/wbs2_rejoinder.pdf).
+
+The difference between WBS and WBS2 is in the nature of the interval sampling. In WBS, all intervals to be used are sampled before the solution path procedure is ran. In WBS2, a relatively small number of intervals are sampled at the beginning, and the first change-point candidate (that corresponding to the largest CUSUM) is identified based on these intervals only. Then, next sampling and identification of change-point candidates is carried out recursively to the left and to the right of the first change-point candidate. In other words, in WBS the sampling is done once, while in WBS2 it is done recursively as the procedure progresses.
+
+## Model selection  methods
+
+### Information criterion (IC)
+
+This method estimates the number and locations of change-points in the piecewise-constant mean of a noisy data sequence via the strengthened Schwarz information criterion (sSIC). Here we penalise the model complexity by subtracting to the log-likelihood a term that is proportional to $k \log^\alpha(n)$, where $k$ is the number of change-points, $n$ is the number of observations, and $\alpha$ is the parameter of sSIC. We then select the model with the largest value of the penalised log-likelihood.
+
+### Localised pruning (LP)
+
+LP is described in [Two-stage data segmentation permitting multiscale change points, heavy tails and dependence](https://arxiv.org/abs/1910.12486) by H. Cho and C. Kirch (2020).
+See also [mosum: A package for moving sums in change-point analysis](https://drive.google.com/file/d/1KSbGfx-sg6B1CcjN4i2RJSaXVejOA7bp/view) by A. Meier, C. Kirch and H. Cho (2020). Journal of Statistical Software, to appear.
+
+From a set of candidate change-point estimators, it selects a subset
+that satisfies the followings based on the Schwarz criterion (SC):
+
+* Adding further change-point estimators to the subset monotonically increases the SC.
+
+* Among such subsets with the smallest cardinality, it has the minimum SC.
+
+Performing the above steps locally (using the information about the interval in which each estimator is detected), it selects the final model.
+The LP is implemented with MOSUM-based candidate generation procedure in the R package [mosum](https://CRAN.R-project.org/package=mosum).
+
+### Steepest drop to low levels (SDLL)
+
+SDLL is described in [Detecting possibly frequent change-points: Wild Binary Segmentation 2 and steepest-drop model selection.](http://stats.lse.ac.uk/fryzlewicz/wbs2/wbs2sdll.pdf) P. Fryzlewicz (2020). Journal of the Korean Statistical Society, to appear. See also this [Rejoinder](http://stats.lse.ac.uk/fryzlewicz/wbs2/wbs2_rejoinder.pdf).
+
+The main idea is to find a location, along the solution path, at which the maximum CUSUMs stop being 'large' (these are believed to correspond to real change-points) and start being 'small' (these are believed to correspond to noise). SDLL identifies this location as that corresponding to the biggest drop in logged CUSUMs along the solution path which is followed by suitably small logged CUSUMs - hence the name SDLL (Steepest Drop to Low Levels).
+
+### Thresholding (THRESH)
+This method estimates the number and locations of change-points in the piecewise-constant mean of a noisy data sequence via the value of a threshold. Those estimations (that are in the solution path) with a CUSUM value above a predefined threshold are selected as change-points. The threshold used is of the form $C\sqrt{2\log T}$, where $C$ is a positive constant.
+
+## Planned future developments
+
+* Methods for piecewise-linear signals plus iid Gaussian noise
+* Extensions to serially correlated, light-tailed noise
+* Robust methods for heavy-tailed noise which detect changes in the piecewise-constant median
+* Interval sampling in WBS, WBS2 and NOT based on a deterministic grid
+* Data windowing for extremely long signals
+
+# Simulation study
+
+## Simulated signals
+The signals used in the simulation study are
+
+* (NC1) *constant signal* : length 3000 with no change-points. The standard deviation is $\sigma = 1$.
+
+* (NC2) *short constant signal*: length 50 with no change-points. The standard deviation is $\sigma = 1$.
+
+* (NC3) *shorter constant signal*: length 5 with no change-points. The standard deviation is $\sigma = 1$.
+
+* (NC4) *long constant signal*: length 10000 with no change-points. The standard deviation is $\sigma = 1$.
+
+* (M1) *blocks*: length 2048 with change-points at 205, 267, 308, 472, 512, 820, 902, 1332, 1557, 1598, 1659 with values between change-points 0, 14.64, -3.66, 7.32, -7.32, 10.98, -4.39, 3.29, 19.03, 7.68, 15.37, 0. The standard deviation is $\sigma = 10$.
+
+* (M2) *fms*: length 497 with change-points at 139, 226, 243, 300, 309, 333 with values between change-points -0.18, 0.08, 1.07, -0.53, 0.16, -0.69, -0.16. The standard deviation of the noise is $\sigma = 0.3$.
+
+* (M3) *mix*: length 560 with change-points at 11, 21, 41, 61, 91, 121, 161, 201, 251, 301, 361, 421, 491 with values between change-points 7, -7, 6, -6, 5, -5, 4, -4, 3, -3, 2, -2, 1, -1. The standard deviation of the noise is $\sigma = 4$.
+
+* (M4) *teeth*: length 140 with change-points at 11, 21, 31, 41, 51, 61, 71, 81, 91, 101, 111, 121, 131 with values between change-points 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1. The standard deviation of the noise is $\sigma = 0.4$.
+
+* (M5) *stairs*: length 150 with change-points at 11, 21, 31, 41, 51, 61, 71, 81, 91, 101, 111, 121, 131, 141 with values between change-points 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15. The standard deviation of the noise is $\sigma = 0.3$.
+
+* (M6) *long teeth*: length 10000 with 249 change-points at 40,80,$\ldots$,9960 with values between change-points 0,1.5,0,1.5,$\ldots$,0,1.5. The standard deviation is $\sigma = 1$.
+
+* (M7) *short signal*: length 50 with 2 change-points at 15 and 30 with values between change-points 0,2,-0.5. The standard deviation is $\sigma = 1$.
+
+* (M8) *extremely short signal*: length 10 with 2 change-points at 3 and 7 with values between change-points 0, 3, 0. The standard deviation is $\sigma = 1$.
+
+* (M9) *strong signal*: length 2500 with 4 change-points at 100, 600, 1600, 2000 with values between change-points 
+0, 5, 0, 10, 2. The standard deviation is $\sigma = 0.1$.
+
+* (M10) *one spike*: length 2500 with 1 spike at 1001 with the value 100. This means that there are 2 change-points in the mean at 1000 and 1001. Before and after the spike the value of the signal is 0. The standard deviation is $\sigma = 1$.
+
+* (M11) *no noise*: length 1000 with 3 change-points at 350, 550, 750 with values between change-points 0, 5, 0, -4. There is no noise, so we set the standard deviation in our simulation study to be equal to $\sigma = 0$.
+
+* (M12) *linear*: linear signal of length 501 with no changes in the slope. The signal is 0,1,2,$\ldots$, 500. The standard deviation is $\sigma = 1$.
+
+* (M13) *linear no noise*: The same linear signal as in (M13) but without noise, meaning that $\sigma = 0$.
+
+## Simulation process
+We ran 100 replications for each one of the abovementioned signals and the frequency distribution of $\hat{N} - N$ for each solution path method (combined with a model selection algorithm) is presented. The methods with the highest empirical frequency of $\hat{N} - N = 0$ (or in a neighbourhood of zero, depending on the example) and those within $10\%$ off the highest are given in bold. As a measure of the accuracy of the detected locations, we provide Monte-Carlo estimates of the mean squared error, ${\rm MSE} = T^{-1}\sum_{t=1}^{T}{\rm E}\left(\hat{f}_t - f_t\right)^2$, where $\hat{f}_t$ is the ordinary least square approximation of $f_t$ between two successive change-points. The scaled Hausdorff distance, $d_H = n_s^{-1}\max\left\lbrace \max_j\min_k\left|r_j-\hat{r}_k\right|,\max_k\min_j\left|r_j-\hat{r}_k\right|\right\rbrace,$ where $n_s$ is the length of the largest segment, is also given in all examples apart from the signals (NC1) - (NC4), which are constant-mean signals without any change-points. Now, due to the fact that we are under a misspecification scenario, we need to be careful on how to explain the results for the signals (M13) and (M14). These signals are linear, and we are using methods developed for the detection of changes in piecewise-constant signals. Therefore in the relevant (for these signals) tables, we decided to present the average number of estimated change-points that each method returns, and the MSE, which is calculated by taking as true signal a stair-like structure, where each data point is a change-point and there is a jump of magnitude equal to one. The average computational time for all methods is also provided.
+
+
+## Code for running the simulations
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```r
+library(breakfast)
+options(expressions = 500000)
+mean.from.cpt <- function(x, cpt) {
+  
+  n <- length(x)
+  len.cpt <- length(cpt)
+  if (len.cpt) cpt <- sort(cpt)
+  beg <- endd <- rep(0, len.cpt+1)
+  beg[1] <- 1
+  endd[len.cpt+1] <- n
+  if (len.cpt) {
+    beg[2:(len.cpt+1)] <- cpt+1
+    endd[1:len.cpt] <- cpt
+  }
+  means <- rep(0, len.cpt+1)
+  for (i in 1:(len.cpt+1)) means[i] <- mean(x[beg[i]:endd[i]])
+  rep(means, endd-beg+1)
+}
+
+## The function used for the comparisons in the case of a piecewise-constant signal model.thresh
+sim_thr <- function(x, const = 1.15) {
+  setClass("cpt.est", representation(cpt="numeric", nocpt="numeric", mean="numeric",time="numeric"),
+  prototype(cpt=numeric(0), nocpt=0, mean=numeric(0),time=numeric(0)))
+  
+  print("wbs")
+  wbsth <- new("cpt.est")
+  z <- model.thresh(sol.wbs(x), th_const = const)
+  if(z$cpts == 0){wbsth@cpt = 0
+  wbsth@nocpt = 0}
+  else{wbsth@cpt <- z$cpts
+  wbsth@nocpt <- z$no.of.cpt}
+  wbsth@mean <- z$est
+  wbsth@time <- system.time(model.thresh(sol.wbs(x), th_const = const))[[3]]
+  
+  print("not")
+  notth <- new("cpt.est")
+  z <- model.thresh(sol.not(x), th_const = const)
+  if(z$cpts == 0){notth@cpt = 0
+  notth@nocpt = 0}
+  else{notth@cpt <- z$cpts
+  notth@nocpt <- z$no.of.cpt}
+  notth@mean <- z$est
+  notth@time <- system.time(model.thresh(sol.not(x), th_const = const))[[3]]
+  
+  print("idetect")
+  idetectth <- new("cpt.est")
+  z <- model.thresh(sol.idetect_seq(x), th_const = const)
+  if(z$cpts == 0){idetectth@cpt = 0
+  idetectth@nocpt = 0}
+  else{idetectth@cpt <- z$cpts
+  idetectth@nocpt <- z$no.of.cpt}
+  idetectth@mean <- z$est
+  idetectth@time <- system.time(model.thresh(sol.idetect_seq(x), th_const = const))[[3]]
+  
+  print("tguh")
+  tguhth <- new("cpt.est")
+  z <- model.thresh(sol.tguh(x), th_const = const)
+  if(z$cpts == 0){tguhth@cpt = 0
+  tguhth@nocpt = 0}
+  else{tguhth@cpt <- z$cpts
+  tguhth@nocpt <- z$no.of.cpt}
+  tguhth@mean <- z$est
+  tguhth@time <- system.time(model.thresh(sol.tguh(x), th_const = const))[[3]]
+  
+  print("wbs2")
+  wbs2th <- new("cpt.est")
+  z <- model.thresh(sol.wbs2(x), th_const = const)
+  if(z$cpts == 0){wbs2th@cpt = 0
+  wbs2th@nocpt = 0}
+  else{wbs2th@cpt <- z$cpts
+  wbs2th@nocpt <- z$no.of.cpt}
+  wbs2th@mean <- z$est
+  wbs2th@time <- system.time(model.thresh(sol.wbs2(x), th_const = const))[[3]]
+  
+
+  list(wbsth=wbsth, notth = notth, idetectth = idetectth, tguhth = tguhth, wbs2th = wbs2th)
+}
+
+
+sim.study.thr <- function(signal, true.cpt=NULL,sigma, m = 100, seed = NULL, gen_const = 1.15) {
+  
+  setClass("est.eval", representation(avg.signal="numeric",mean="list",cpt="list",diff="matrix",
+  dh="numeric",cptall="numeric",dnc="numeric", mse="numeric", time= "numeric"), 
+  prototype(dnc=numeric(m), mse=numeric(m),time=numeric(m),dh=numeric(m)))
+  
+  wbsth <- new("est.eval")
+  wbs2th <- new("est.eval")
+  notth <- new("est.eval")
+  idetectth <- new("est.eval")
+  tguhth <- new("est.eval")
+  
+  no.of.cpt <- sum(abs(diff(signal)) > 0)
+  n <- length(signal)
+  ns <- max(c(diff(true.cpt), length(signal)))
+  
+  if (!is.null(seed)) set.seed(seed)
+  
+  for (i in 1:m) {
+    
+    print(i)
+    x <- signal + sigma * rnorm(n)
+    
+    est <- sim_thr(x, const = gen_const)
+    
+    wbsth@dnc[i] <- est$wbsth@nocpt - no.of.cpt
+    wbsth@mean[[i]] <- est$wbsth@mean
+    wbsth@mse[i] <- mean((est$wbsth@mean - signal)^2)
+    wbsth@cpt[[i]] <- est$wbsth@cpt
+    wbsth@diff <- abs(matrix(est$wbsth@cpt,nrow=no.of.cpt,ncol=length(est$wbsth@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$wbsth@cpt),byr=F))
+    wbsth@dh[i] <- max(apply(wbsth@diff,1,min),apply(wbsth@diff,2,min))/ns
+    wbsth@time[i] <- est$wbsth@time
+
+    notth@dnc[i] <- est$notth@nocpt - no.of.cpt
+    notth@mean[[i]] <- est$notth@mean
+    notth@mse[i] <- mean((est$notth@mean - signal)^2)
+    notth@cpt[[i]] <- est$notth@cpt
+    notth@diff <- abs(matrix(est$notth@cpt,nrow=no.of.cpt,ncol=length(est$notth@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$notth@cpt),byr=F))
+    notth@dh[i] <- max(apply(notth@diff,1,min),apply(notth@diff,2,min))/ns
+    notth@time[i] <- est$notth@time
+    
+    idetectth@dnc[i] <- est$idetectth@nocpt - no.of.cpt
+    idetectth@mean[[i]] <- est$idetectth@mean
+    idetectth@mse[i] <- mean((est$idetectth@mean - signal)^2)
+    idetectth@cpt[[i]] <- est$idetectth@cpt
+    idetectth@diff <- abs(matrix(est$idetectth@cpt,nrow=no.of.cpt,
+    ncol=length(est$idetectth@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$idetectth@cpt),byr=F))
+    idetectth@dh[i] <- max(apply(idetectth@diff,1,min),apply(idetectth@diff,2,min))/ns
+    idetectth@time[i] <- est$idetectth@time
+
+    wbs2th@dnc[i] <- est$wbs2th@nocpt - no.of.cpt
+    wbs2th@mean[[i]] <- est$wbs2th@mean
+    wbs2th@mse[i] <- mean((est$wbs2th@mean - signal)^2)
+    wbs2th@cpt[[i]] <- est$wbs2th@cpt
+    wbs2th@diff <- abs(matrix(est$wbs2th@cpt,nrow=no.of.cpt,ncol=length(est$wbs2th@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$wbs2th@cpt),byr=F))
+    wbs2th@dh[i] <- max(apply(wbs2th@diff,1,min),apply(wbs2th@diff,2,min))/ns
+    wbs2th@time[i] <- est$wbs2th@time
+    
+    tguhth@dnc[i] <- est$tguhth@nocpt - no.of.cpt
+    tguhth@mean[[i]] <- est$tguhth@mean
+    tguhth@mse[i] <- mean((est$tguhth@mean - signal)^2)
+    tguhth@cpt[[i]] <- est$tguhth@cpt
+    tguhth@diff <- abs(matrix(est$tguhth@cpt,nrow=no.of.cpt,ncol=length(est$tguhth@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$tguhth@cpt),byr=F))
+    tguhth@dh[i] <- max(apply(tguhth@diff,1,min),apply(tguhth@diff,2,min))/ns
+    tguhth@time[i] <- est$tguhth@time
+    gc()
+  }
+
+list(wbsth=wbsth, notth=notth, idetectth = idetectth, #idetectth2 = idetectth2,
+     tguhth = tguhth, wbs2th = wbs2th)
+}
+
+seed.temp=12
+
+justnoise = rep(0,3000)
+NC.small_thr1.15 = sim.study.thr(justnoise,sigma=1,true.cpt=c(0),seed=seed.temp, gen_const = 1.15)
+
+justnoise2 = rep(0,50)
+NC2.small_thr1.15 = sim.study.thr(justnoise2,true.cpt=c(0),sigma=1,seed=seed.temp, gen_const = 1.15)
+
+justnoise3 = rep(0,5)
+NC3.small_thr1.15 = sim.study.thr(justnoise3,true.cpt=c(0),sigma=1,seed=seed.temp, gen_const = 1.15)
+
+justnoise4 = rep(0,10000)
+NC4.small_thr1.15 = sim.study.thr(justnoise4,sigma=1,true.cpt=c(0),seed=seed.temp, gen_const = 1.15)
+
+blocks = c(rep(0,205),rep(14.64,62),rep(-3.66,41),rep(7.32,164),rep(-7.32,40),rep(10.98,308),
+           rep(-4.39,82),rep(3.29,430),rep(19.03,225),rep(7.68,41),rep(15.37,61),rep(0,389))
+
+SIMR1.small_thr1.15 = sim.study.thr(blocks,true.cpt = c(205,267,308,472,512,820,902,1332,1557,1598,1659),
+sigma=10,seed=seed.temp, gen_const = 1.15)
+
+fms = c(rep(-0.18,139),rep(0.08,87),rep(1.07,17),rep(-0.53,57),rep(0.16,9),rep(-0.69,24),rep(-0.16,164))
+SIMR2.small_thr1.15 = sim.study.thr(fms,true.cpt = c(139,226,243,300,309,333),sigma=0.3,seed=seed.temp,
+gen_const = 1.15)
+
+mix = c(rep(7,11),rep(-7,10),rep(6,20),rep(-6,20),rep(5,30),rep(-5,30),rep(4,40),rep(-4,40),
+        rep(3,50),rep(-3,50),rep(2,60),rep(-2,60),rep(1,70),rep(-1,69))
+SIMR3.small_thr1.15 = sim.study.thr(mix,true.cpt=c(11,21,41,61,91,121,161,201,251,301,361,421,491),
+sigma=4,seed=seed.temp, gen_const = 1.15)
+
+teeth10 = c(rep(0,11),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,10),rep(0,10),
+rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,9))
+SIMR4.small_thr1.15 = sim.study.thr(teeth10,true.cpt=seq(11,131,10),0.4,seed=seed.temp, gen_const = 1.15)
+
+stairs10 = c(rep(1,11),rep(2,10),rep(3,10),rep(4,10),rep(5,10),rep(6,10),rep(7,10),rep(8,10),rep(9,10),
+rep(10,10),rep(11,10),rep(12,10),rep(13,10),rep(14,10),rep(15,9))
+SIMR5.small_thr1.15 = sim.study.thr(stairs10,true.cpt=seq(11,141,10),sigma=0.3,seed=seed.temp, 
+gen_const = 1.15)
+
+myteeth20 = rep(c(rep(0,40),rep(1.5,40)),125)
+SIMR6.small_thr1.15 = sim.study.thr(myteeth20,true.cpt = seq(40,9960,40),sigma=1,seed=seed.temp,
+m=100, gen_const = 1.15)
+
+extr_short_2_cpt <- c(rep(0,15), rep(2,15), rep(-0.5,20))
+SIMR8.small_thr1.15 = sim.study.thr(extr_short_2_cpt,true.cpt=c(15,30),sigma=1,seed=seed.temp,
+m=100, gen_const = 1.15)
+
+extr_short_2_cpt2 <- c(rep(0,3), rep(3,4), rep(0,3))
+SIMR9.small_thr1.15 = sim.study.thr(extr_short_2_cpt2,true.cpt=c(3,7),sigma=1,seed=seed.temp,
+m=100, gen_const = 1.15)
+
+strong_sig_low_noise <- c(rep(0,100), rep(5,500), rep(0, 1000), rep(10, 400), rep(2, 500))
+SIMR10.small_thr1.15 <- sim.study.thr(strong_sig_low_noise,true.cpt=c(100, 600, 1600, 2000),
+sigma=0.1,seed=seed.temp, m=100, gen_const = 1.15)
+
+one_spike_in_middle <- c(rep(0,1000),100, rep(0,999))
+SIMR11.small_thr1.15 <- sim.study.thr(one_spike_in_middle,true.cpt=c(1000, 1001),sigma=1,
+seed=seed.temp, m=100, gen_const = 1.15)
+
+no_noise <- c(rep(0,250), rep(5,300), rep(0,200), rep(-4,250))
+SIMR12.small_thr1.15 <- sim.study.thr(no_noise,true.cpt=c(250, 550, 750),sigma=0,seed=seed.temp,
+m=1, gen_const = 1.15) ## no need for 100 replications here.
+
+linear <- seq(0,500)
+SIMR13.small_thr1.15 <- sim.study.thr(linear,true.cpt=seq(1,500,1),sigma=1,seed=seed.temp,
+m=100, gen_const = 1.15)
+
+SIMR14.small_thr1.15 <- sim.study.thr(linear,true.cpt=seq(1,500,1),sigma=0,seed=seed.temp,
+m=1, gen_const = 1.15) ## no need for 100 replications here.
+
+
+## The function used for the comparisons in the case of a piecewise-constant signal 
+## information criterion
+sim_ic <- function(x, par.max = 25) {
+  setClass("cpt.est", representation(cpt="numeric", nocpt="numeric", mean="numeric",time="numeric"),
+  prototype(cpt=numeric(0), nocpt=0, mean=numeric(0),time=numeric(0)))
+  
+  print("wbs")
+  wbsic <- new("cpt.est")
+  z <- model.ic(sol.wbs(x), q.max = par.max)
+  if(z$cpt == 0){wbsic@cpt = 0
+   wbsic@nocpt = 0}
+ else{wbsic@cpt <- z$cpt
+  wbsic@nocpt <- z$no.of.cpt}
+  wbsic@mean <- z$est
+  wbsic@time <- system.time(model.ic(sol.wbs(x), q.max = par.max))[[3]]
+  
+  print("tguh")
+  tguhic <- new("cpt.est")
+  z <- model.ic(sol.tguh(x), q.max = par.max)
+  if(z$cpt == 0){tguhic@cpt = 0
+  tguhic@nocpt = 0}
+  else{tguhic@cpt <- z$cpt
+  tguhic@nocpt <- z$no.of.cpt}
+  tguhic@mean <- z$est
+  tguhic@time <- system.time(model.ic(sol.tguh(x), q.max = par.max))[[3]]
+  
+  print("not")
+  notic <- new("cpt.est")
+  z <- model.ic(sol.not(x), q.max = par.max)
+  if(z$cpt == 0){notic@cpt = 0
+  notic@nocpt = 0}
+  else{notic@cpt <- z$cpt
+  notic@nocpt <- z$no.of.cpt}
+  notic@mean <- z$est
+  notic@time <- system.time(model.ic(sol.not(x), q.max = par.max))[[3]]
+  
+  print("idetect")
+  idetectic <- new("cpt.est")
+  z <- model.ic(sol.idetect(x), q.max = par.max)
+  if(z$cpt == 0){idetectic@cpt = 0
+  idetectic@nocpt = 0}
+  else{idetectic@cpt <- z$cpt
+  idetectic@nocpt <- z$no.of.cpt}
+  idetectic@mean <- z$est
+  idetectic@time <- system.time(model.ic(sol.idetect(x), q.max = par.max))[[3]]
+  
+  print("wbs2")
+  wbs2ic <- new("cpt.est")
+  z <- model.ic(sol.wbs2(x), q.max = par.max)
+  if(z$cpt == 0){wbs2ic@cpt = 0
+  wbs2ic@nocpt = 0}
+  else{wbs2ic@cpt <- z$cpt
+  wbs2ic@nocpt <- z$no.of.cpt}
+  wbs2ic@mean <- z$est
+  wbs2ic@time <- system.time(model.ic(sol.wbs2(x), q.max = par.max))[[3]]
+  
+  
+  list(wbsic=wbsic, notic = notic,
+    idetectic = idetectic, tguhic = tguhic, wbs2ic = wbs2ic)
+}
+
+
+sim.study.ic <- function(signal, true.cpt=NULL,sigma, m = 100, seed = NULL, max.par = 25) {
+  
+  setClass("est.eval", representation(avg.signal="numeric",mean="list",cpt="list",diff="matrix",
+  dh="numeric",cptall="numeric",dnc="numeric", mse="numeric", time= "numeric"),
+  prototype(dnc=numeric(m), mse=numeric(m),time=numeric(m),dh=numeric(m)))
+  
+  wbsic <- new("est.eval")
+  wbs2ic <- new("est.eval")
+  notic <- new("est.eval")
+  idetectic <- new("est.eval")
+  tguhic <- new("est.eval")
+  
+  no.of.cpt <- sum(abs(diff(signal)) > 0)
+  n <- length(signal)
+  ns <- max(c(diff(true.cpt), length(signal)))
+  
+  if (!is.null(seed)) set.seed(seed)
+  
+  for (i in 1:m) {
+    
+    print(i)
+    x <- signal + sigma * rnorm(n)
+    
+    est <- sim_ic(x, par.max = max.par)
+    
+    wbsic@dnc[i] <- est$wbsic@nocpt - no.of.cpt
+    wbsic@mean[[i]] <- est$wbsic@mean
+    wbsic@mse[i] <- mean((est$wbsic@mean - signal)^2)
+    wbsic@cpt[[i]] <- est$wbsic@cpt
+    wbsic@diff <- abs(matrix(est$wbsic@cpt,nrow=no.of.cpt,ncol=length(est$wbsic@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$wbsic@cpt),byr=F))
+    wbsic@dh[i] <- max(apply(wbsic@diff,1,min),apply(wbsic@diff,2,min))/ns
+    wbsic@time[i] <- est$wbsic@time
+
+    wbs2ic@dnc[i] <- est$wbs2ic@nocpt - no.of.cpt
+    wbs2ic@mean[[i]] <- est$wbs2ic@mean
+    wbs2ic@mse[i] <- mean((est$wbs2ic@mean - signal)^2)
+    wbs2ic@cpt[[i]] <- est$wbs2ic@cpt
+    wbs2ic@diff <- abs(matrix(est$wbs2ic@cpt,nrow=no.of.cpt,ncol=length(est$wbs2ic@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$wbs2ic@cpt),byr=F))
+    wbs2ic@dh[i] <- max(apply(wbs2ic@diff,1,min),apply(wbs2ic@diff,2,min))/ns
+    wbs2ic@time[i] <- est$wbs2ic@time
+
+    notic@dnc[i] <- est$notic@nocpt - no.of.cpt
+    notic@mean[[i]] <- est$notic@mean
+    notic@mse[i] <- mean((est$notic@mean - signal)^2)
+    notic@cpt[[i]] <- est$notic@cpt
+    notic@diff <- abs(matrix(est$notic@cpt,nrow=no.of.cpt,ncol=length(est$notic@cpt),
+    byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$notic@cpt),byr=F))
+    notic@dh[i] <- max(apply(notic@diff,1,min),apply(notic@diff,2,min))/ns
+    notic@time[i] <- est$notic@time
+    
+    idetectic@dnc[i] <- est$idetectic@nocpt - no.of.cpt
+    idetectic@mean[[i]] <- est$idetectic@mean
+    idetectic@mse[i] <- mean((est$idetectic@mean - signal)^2)
+    idetectic@cpt[[i]] <- est$idetectic@cpt
+    idetectic@diff <- abs(matrix(est$idetectic@cpt,nrow=no.of.cpt,ncol=length(est$idetectic@cpt),
+    byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$idetectic@cpt),byr=F))
+    idetectic@dh[i] <- max(apply(idetectic@diff,1,min),apply(idetectic@diff,2,min))/ns
+    idetectic@time[i] <- est$idetectic@time
+    
+    tguhic@dnc[i] <- est$tguhic@nocpt - no.of.cpt
+    tguhic@mean[[i]] <- est$tguhic@mean
+    tguhic@mse[i] <- mean((est$tguhic@mean - signal)^2)
+    tguhic@cpt[[i]] <- est$tguhic@cpt
+    tguhic@diff <- abs(matrix(est$tguhic@cpt,nrow=no.of.cpt,ncol=length(est$tguhic@cpt),
+    byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$tguhic@cpt),byr=F))
+    tguhic@dh[i] <- max(apply(tguhic@diff,1,min),apply(tguhic@diff,2,min))/ns
+    tguhic@time[i] <- est$tguhic@time
+    
+  }
+  
+  list(wbsic=wbsic, notic=notic, idetectic = idetectic, tguhic = tguhic, wbs2ic = wbs2ic)
+}
+
+seed.temp=12
+
+justnoise = rep(0,3000)
+NC.small_ic = sim.study.ic(justnoise,sigma=1,true.cpt=c(0),seed=seed.temp)
+
+justnoise2 = rep(0,50)
+NC2.small_ic = sim.study.ic(justnoise2,true.cpt=c(0),sigma=1,seed=seed.temp)
+
+justnoise3 = rep(0,5)
+NC3.small_ic = sim.study.ic(justnoise3,true.cpt=c(0),sigma=1,seed=seed.temp)
+
+justnoise4 = rep(0,10000)
+NC4.small_ic = sim.study.ic(justnoise4,sigma=1,true.cpt=c(0),seed=seed.temp)
+
+blocks = c(rep(0,205),rep(14.64,62),rep(-3.66,41),rep(7.32,164),rep(-7.32,40),rep(10.98,308),
+           rep(-4.39,82),rep(3.29,430),rep(19.03,225),rep(7.68,41),rep(15.37,61),rep(0,389))
+
+
+SIMR1.small_ic = sim.study.ic(blocks,true.cpt = c(205,267,308,472,512,820,902,1332,1557,1598,1659),
+sigma=10,seed=seed.temp)
+
+fms = c(rep(-0.18,139),rep(0.08,87),rep(1.07,17),rep(-0.53,57),rep(0.16,9),rep(-0.69,24),
+rep(-0.16,164))
+SIMR2.small_ic = sim.study.ic(fms,true.cpt = c(139,226,243,300,309,333),sigma=0.3,seed=seed.temp)
+
+mix = c(rep(7,11),rep(-7,10),rep(6,20),rep(-6,20),rep(5,30),rep(-5,30),rep(4,40),rep(-4,40),
+        rep(3,50),rep(-3,50),rep(2,60),rep(-2,60),rep(1,70),rep(-1,69))
+SIMR3.small_ic = sim.study.ic(mix,true.cpt=c(11,21,41,61,91,121,161,201,251,301,361,421,491), 
+sigma=4,seed=seed.temp)
+
+teeth10 = c(rep(0,11),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,10),
+rep(0,10),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,9))
+SIMR4.small_ic = sim.study.ic(teeth10,true.cpt=seq(11,131,10),0.4,seed=seed.temp)
+
+stairs10 = c(rep(1,11),rep(2,10),rep(3,10),rep(4,10),rep(5,10),rep(6,10),rep(7,10),rep(8,10),
+rep(9,10),rep(10,10),rep(11,10),rep(12,10),rep(13,10),rep(14,10),rep(15,9))
+SIMR5.small_ic = sim.study.ic(stairs10,true.cpt=seq(11,141,10),sigma=0.3,seed=seed.temp)
+
+myteeth20 = rep(c(rep(0,40),rep(1.5,40)),125)
+SIMR6.small_ic = sim.study.ic(myteeth20,true.cpt = seq(40,9960,40),sigma=1,seed=seed.temp, m=100)
+
+long_teeth = rep(c(rep(0,40),rep(1.5,40)),1250)
+SIMR7.small_ic = sim.study.ic(long_teeth,true.cpt = seq(40,99960,40),sigma=1,seed=seed.temp, m=100)
+
+extr_short_2_cpt <- c(rep(0,15), rep(2,15), rep(-0.5,20))
+SIMR8.small_ic = sim.study.ic(extr_short_2_cpt,true.cpt=c(15,30),sigma=1,seed=seed.temp, m=100)
+
+extr_short_2_cpt2 <- c(rep(0,3), rep(3,4), rep(0,3))
+SIMR9.small_ic = sim.study.ic(extr_short_2_cpt2,true.cpt=c(3,7),sigma=1,seed=seed.temp, m=100)
+
+strong_sig_low_noise <- c(rep(0,100), rep(5,500), rep(0, 1000), rep(10, 400), rep(2, 500))
+SIMR10.small_ic <- sim.study.ic(strong_sig_low_noise,true.cpt=c(100, 600, 1600, 2000),sigma=0.1,
+seed=seed.temp, m=100)
+
+one_spike_in_middle <- c(rep(0,1000),100, rep(0,999))
+SIMR11.small_ic <- sim.study.ic(one_spike_in_middle,true.cpt=c(1000, 1001),sigma=1,
+seed=seed.temp, m=100)
+
+no_noise <- c(rep(0,250), rep(5,300), rep(0,200), rep(-4,250))
+SIMR12.small_ic <- sim.study.ic(no_noise,true.cpt=c(250, 550, 750),sigma=0,seed=seed.temp, m=1) 
+## no need for 100 replications here.
+
+linear <- seq(0,500)
+SIMR13.small_ic <- sim.study.ic(linear,true.cpt=seq(1,500,1),sigma=1,seed=seed.temp, m=100, 
+max.par = 550)
+
+SIMR14.small_ic <- sim.study.ic(linear,true.cpt=seq(1,500,1),sigma=0,seed=seed.temp, m=1, 
+max.par = 550) ## no need for 100 replications here.
+
+
+## The function used for the comparisons in the case of a piecewise-constant signal sdll
+sim_sdll <- function(x) {
+  setClass("cpt.est", representation(cpt="numeric", nocpt="numeric", mean="numeric",time="numeric"), 
+  prototype(cpt=numeric(0), nocpt=0, mean=numeric(0),time=numeric(0)))
+  
+  print("wbs")
+  wbssdll <- new("cpt.est")
+  z <- model.sdll(sol.wbs(x))
+  if(length(z$cpts) == 0){wbssdll@cpt = 0
+  wbssdll@nocpt = 0}
+  else{wbssdll@cpt <- z$cpts
+  wbssdll@nocpt <- z$no.of.cpt}
+  wbssdll@mean <- z$est
+  wbssdll@time <- system.time(model.sdll(sol.wbs(x)))[[3]]
+  
+
+  print("tguh")
+  tguhsdll <- new("cpt.est")
+  z <- model.sdll(sol.tguh(x))
+  if(length(z$cpts) == 0){tguhsdll@cpt = 0
+  tguhsdll@nocpt = 0}
+  else{tguhsdll@cpt <- z$cpt
+  tguhsdll@nocpt <- z$no.of.cpt}
+  tguhsdll@mean <- z$est
+  tguhsdll@time <- system.time(model.sdll(sol.tguh(x)))[[3]]
+  
+  print("idetect")
+  idetectsdll <- new("cpt.est")
+  z <- model.sdll(sol.idetect(x))
+  if(length(z$cpts) == 0){idetectsdll@cpt = 0
+  idetectsdll@nocpt = 0}
+  else{idetectsdll@cpt <- z$cpt
+  idetectsdll@nocpt <- z$no.of.cpt}
+  idetectsdll@mean <- z$est
+  idetectsdll@time <- system.time(model.sdll(sol.idetect(x)))[[3]]
+  
+  print("wbs2")
+  wbs2sdll <- new("cpt.est")
+  z <- model.sdll(sol.wbs2(x))
+  if(length(z$cpts) == 0){wbs2sdll@cpt = 0
+  wbs2sdll@nocpt = 0}
+  else{wbs2sdll@cpt <- z$cpt
+  wbs2sdll@nocpt <- z$no.of.cpt}
+  wbs2sdll@mean <- z$est
+  wbs2sdll@time <- system.time(model.sdll(sol.wbs2(x)))[[3]]
+  
+  
+  list(wbssdll=wbssdll, idetectsdll = idetectsdll, tguhsdll = tguhsdll, wbs2sdll = wbs2sdll)
+}
+
+
+sim.study.sdll <- function(signal, true.cpt=NULL,sigma, m = 100, seed = NULL) {
+  
+  setClass("est.eval", representation(avg.signal="numeric",mean="list",cpt="list",diff="matrix",
+  dh="numeric",cptall="numeric",dnc="numeric", mse="numeric", time= "numeric"), 
+  prototype(dnc=numeric(m), mse=numeric(m),time=numeric(m),dh=numeric(m)))
+  
+  wbssdll <- new("est.eval")
+  wbs2sdll <- new("est.eval")
+  idetectsdll <- new("est.eval")
+  tguhsdll <- new("est.eval")
+  
+  no.of.cpt <- sum(abs(diff(signal)) > 0)
+  n <- length(signal)
+  ns <- max(c(diff(true.cpt), length(signal)))
+  
+  if (!is.null(seed)) set.seed(seed)
+  
+  for (i in 1:m) {
+    
+    print(i)
+    x <- signal + sigma * rnorm(n)
+    
+    est <- sim_sdll(x)
+    
+    wbssdll@dnc[i] <- est$wbssdll@nocpt - no.of.cpt
+    wbssdll@mean[[i]] <- est$wbssdll@mean
+    wbssdll@mse[i] <- mean((est$wbssdll@mean - signal)^2)
+    wbssdll@cpt[[i]] <- est$wbssdll@cpt
+    wbssdll@diff <- abs(matrix(est$wbssdll@cpt,nrow=no.of.cpt,ncol=length(est$wbssdll@cpt),
+    byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$wbssdll@cpt),byr=F))
+    wbssdll@dh[i] <- max(apply(wbssdll@diff,1,min),apply(wbssdll@diff,2,min))/ns
+    wbssdll@time[i] <- est$wbssdll@time
+    
+    wbs2sdll@dnc[i] <- est$wbs2sdll@nocpt - no.of.cpt
+    wbs2sdll@mean[[i]] <- est$wbs2sdll@mean
+    wbs2sdll@mse[i] <- mean((est$wbs2sdll@mean - signal)^2)
+    wbs2sdll@cpt[[i]] <- est$wbs2sdll@cpt
+    wbs2sdll@diff <- abs(matrix(est$wbs2sdll@cpt,nrow=no.of.cpt,ncol=length(est$wbs2sdll@cpt),
+    byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$wbs2sdll@cpt),byr=F))
+    wbs2sdll@dh[i] <- max(apply(wbs2sdll@diff,1,min),apply(wbs2sdll@diff,2,min))/ns
+    wbs2sdll@time[i] <- est$wbs2sdll@time
+    
+    idetectsdll@dnc[i] <- est$idetectsdll@nocpt - no.of.cpt
+    idetectsdll@mean[[i]] <- est$idetectsdll@mean
+    idetectsdll@mse[i] <- mean((est$idetectsdll@mean - signal)^2)
+    idetectsdll@cpt[[i]] <- est$idetectsdll@cpt
+    idetectsdll@diff <- abs(matrix(est$idetectsdll@cpt,nrow=no.of.cpt,
+    ncol=length(est$idetectsdll@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$idetectsdll@cpt),byr=F))
+    idetectsdll@dh[i] <- max(apply(idetectsdll@diff,1,min),apply(idetectsdll@diff,2,min))/ns
+    idetectsdll@time[i] <- est$idetectsdll@time
+    
+    tguhsdll@dnc[i] <- est$tguhsdll@nocpt - no.of.cpt
+    tguhsdll@mean[[i]] <- est$tguhsdll@mean
+    tguhsdll@mse[i] <- mean((est$tguhsdll@mean - signal)^2)
+    tguhsdll@cpt[[i]] <- est$tguhsdll@cpt
+    tguhsdll@diff <- abs(matrix(est$tguhsdll@cpt,nrow=no.of.cpt,ncol=length(est$tguhsdll@cpt),
+    byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$tguhsdll@cpt),byr=F))
+    tguhsdll@dh[i] <- max(apply(tguhsdll@diff,1,min),apply(tguhsdll@diff,2,min))/ns
+    tguhsdll@time[i] <- est$tguhsdll@time
+    
+  }
+  
+  list(wbssdll=wbssdll, idetectsdll = idetectsdll, tguhsdll = tguhsdll, wbs2sdll = wbs2sdll)
+}
+
+seed.temp=12
+
+justnoise = rep(0,3000)
+NC.small_sdll = sim.study.sdll(justnoise,sigma=1,true.cpt=c(0),seed=seed.temp)
+
+justnoise2 = rep(0,50)
+NC2.small_sdll = sim.study.sdll(justnoise2,true.cpt=c(0),sigma=1,seed=seed.temp)
+
+justnoise3 = rep(0,5)
+NC3.small_sdll = sim.study.sdll(justnoise3,true.cpt=c(0),sigma=1,seed=seed.temp)
+
+justnoise4 = rep(0,10000)
+NC4.small_sdll = sim.study.sdll(justnoise4,sigma=1,true.cpt=c(0),seed=seed.temp)
+
+blocks = c(rep(0,205),rep(14.64,62),rep(-3.66,41),rep(7.32,164),rep(-7.32,40),rep(10.98,308),
+           rep(-4.39,82),rep(3.29,430),rep(19.03,225),rep(7.68,41),rep(15.37,61),rep(0,389))
+
+SIMR1.small_sdll = sim.study.sdll(blocks,true.cpt = c(205,267,308,472,512,820,902,1332,1557,
+1598,1659), sigma=10,seed=seed.temp)
+
+fms = c(rep(-0.18,139),rep(0.08,87),rep(1.07,17),rep(-0.53,57),rep(0.16,9),rep(-0.69,24),
+rep(-0.16,164))
+SIMR2.small_sdll = sim.study.sdll(fms,true.cpt = c(139,226,243,300,309,333),sigma=0.3,seed=seed.temp)
+
+mix = c(rep(7,11),rep(-7,10),rep(6,20),rep(-6,20),rep(5,30),rep(-5,30),rep(4,40),rep(-4,40),
+        rep(3,50),rep(-3,50),rep(2,60),rep(-2,60),rep(1,70),rep(-1,69))
+SIMR3.small_sdll = sim.study.sdll(mix,true.cpt=c(11,21,41,61,91,121,161,201,251,301,361,421,491), 
+sigma=4,seed=seed.temp)
+
+teeth10 = c(rep(0,11),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,10),
+rep(0,10),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,9))
+SIMR4.small_sdll = sim.study.sdll(teeth10,true.cpt=seq(11,131,10),0.4,seed=seed.temp)
+
+stairs10 = c(rep(1,11),rep(2,10),rep(3,10),rep(4,10),rep(5,10),rep(6,10),rep(7,10),rep(8,10),
+rep(9,10),rep(10,10),rep(11,10),rep(12,10),rep(13,10),rep(14,10),rep(15,9))
+SIMR5.small_sdll = sim.study.sdll(stairs10,true.cpt=seq(11,141,10),sigma=0.3,seed=seed.temp)
+
+myteeth20 = rep(c(rep(0,40),rep(1.5,40)),125)
+SIMR6.small_sdll = sim.study.sdll(myteeth20,true.cpt = seq(40,9960,40),sigma=1,seed=seed.temp,
+m=100)
+
+long_teeth = rep(c(rep(0,40),rep(1.5,40)),1250)
+SIMR7.small_sdll = sim.study.sdll(long_teeth,true.cpt = seq(40,99960,40),sigma=1,seed=seed.temp,
+m=100)
+
+extr_short_2_cpt <- c(rep(0,15), rep(2,15), rep(-0.5,20))
+SIMR8.small_sdll = sim.study.sdll(extr_short_2_cpt,true.cpt=c(15,30),sigma=1,seed=seed.temp,
+m=100, gen_const = 1.1)
+
+extr_short_2_cpt2 <- c(rep(0,3), rep(3,4), rep(0,3))
+SIMR9.small_sdll = sim.study.sdll(extr_short_2_cpt2,true.cpt=c(3,7),sigma=1,seed=seed.temp,
+m=100, gen_const = 1.1)
+
+strong_sig_low_noise <- c(rep(0,100), rep(5,500), rep(0, 1000), rep(10, 400), rep(2, 500))
+SIMR10.small_sdll <- sim.study.sdll(strong_sig_low_noise,true.cpt=c(100, 600, 1600, 2000),
+sigma=0.1, seed=seed.temp, m=100, gen_const = 1.1)
+
+one_spike_in_middle <- c(rep(0,1000),100, rep(0,999))
+SIMR11.small_sdll <- sim.study.sdll(one_spike_in_middle,true.cpt=c(1000, 1001),sigma=1,seed=seed.temp, 
+m=100, gen_const = 1.1)
+
+no_noise <- c(rep(0,250), rep(5,300), rep(0,200), rep(-4,250))
+SIMR12.small_sdll <- sim.study.sdll(no_noise,true.cpt=c(250, 550, 750),sigma=0,seed=seed.temp, m=1) 
+## no need for 100 replications here.
+
+linear <- seq(0,500)
+SIMR13.small_sdll <- sim.study.sdll(linear,true.cpt=seq(1,500,1),sigma=1,seed=seed.temp, m=100)
+
+SIMR14.small_sdll <- sim.study.sdll(linear,true.cpt=seq(1,500,1),sigma=0,seed=seed.temp, m=1) 
+## no need for 100 replications here.
+
+
+## The function used for the comparisons in the case of a piecewise-constant signal 
+## with localised pruning
+sim_lp <- function(x) {
+  setClass("cpt.est", representation(cpt="numeric", nocpt="numeric", mean="numeric",time="numeric"),
+  prototype(cpt=numeric(0), nocpt=0, mean=numeric(0),time=numeric(0)))
+  
+  print("wbs")
+  wbsloc.prune <- new("cpt.est")
+  z <- model.lp(sol.wbs(x))
+  if(length(z$cpts) == 0){wbsloc.prune@cpt = 0
+  wbsloc.prune@nocpt = 0}
+  else{wbsloc.prune@cpt <- z$cpts
+  wbsloc.prune@nocpt <- z$no.of.cpt}
+  wbsloc.prune@mean <- z$est
+  wbsloc.prune@time <- system.time(model.lp(sol.wbs(x)))[[3]]
+  
+  print("not")
+  notloc.prune <- new("cpt.est")
+  z <- model.lp(sol.not(x))
+  if(length(z$cpts) == 0){notloc.prune@cpt = 0
+  notloc.prune@nocpt = 0}
+  else{notloc.prune@cpt <- z$cpts
+  notloc.prune@nocpt <- z$no.of.cpt}
+  notloc.prune@mean <- z$est
+  notloc.prune@time <- system.time(model.lp(sol.not(x)))[[3]]
+  
+  print("wbs2")
+  wbs2loc.prune <- new("cpt.est")
+  z <- model.lp(sol.wbs2(x))
+  if(length(z$cpts) == 0){wbs2loc.prune@cpt = 0
+  wbs2loc.prune@nocpt = 0}
+  else{wbs2loc.prune@cpt <- z$cpts
+  wbs2loc.prune@nocpt <- z$no.of.cpt}
+  wbs2loc.prune@mean <- z$est
+  wbs2loc.prune@time <- system.time(model.lp(sol.wbs2(x)))[[3]]
+  
+  print("tguh")
+  tguhloc.prune <- new("cpt.est")
+  z <- model.lp(sol.tguh(x))
+  if(length(z$cpts) == 0){tguhloc.prune@cpt = 0
+  tguhloc.prune@nocpt = 0}
+  else{tguhloc.prune@cpt <- z$cpts
+  tguhloc.prune@nocpt <- z$no.of.cpt}
+  tguhloc.prune@mean <- z$est
+  tguhloc.prune@time <- system.time(model.lp(sol.tguh(x)))[[3]]
+  
+  list(wbsloc.prune=wbsloc.prune, notloc.prune = notloc.prune, tguhloc.prune = tguhloc.prune, 
+  wbs2loc.prune = wbs2loc.prune)
+}
+
+
+sim.study.lp <- function(signal, true.cpt=NULL,sigma, m = 100, seed = NULL) {
+  
+  setClass("est.eval", representation(avg.signal="numeric",mean="list",cpt="list",
+  diff="matrix", dh="numeric",cptall="numeric",dnc="numeric", mse="numeric", time= "numeric"),
+  prototype(dnc=numeric(m), mse=numeric(m),time=numeric(m),dh=numeric(m)))
+  
+  wbsloc.prune <- new("est.eval")
+  wbs2loc.prune <- new("est.eval")
+  notloc.prune <- new("est.eval")
+  tguhloc.prune <- new("est.eval")
+  
+  no.of.cpt <- sum(abs(diff(signal)) > 0)
+  n <- length(signal)
+  ns <- max(c(diff(true.cpt), length(signal)))
+  
+  if (!is.null(seed)) set.seed(seed)
+  
+  for (i in 1:m) {
+    
+    print(i)
+    x <- signal + sigma * rnorm(n)
+    
+    est <- sim_lp(x)
+    
+    wbsloc.prune@dnc[i] <- est$wbsloc.prune@nocpt - no.of.cpt
+    wbsloc.prune@mean[[i]] <- est$wbsloc.prune@mean
+    wbsloc.prune@mse[i] <- mean((est$wbsloc.prune@mean - signal)^2)
+    wbsloc.prune@cpt[[i]] <- est$wbsloc.prune@cpt
+    wbsloc.prune@diff <- abs(matrix(est$wbsloc.prune@cpt,nrow=no.of.cpt,
+    ncol=length(est$wbsloc.prune@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$wbsloc.prune@cpt),byr=F))
+    wbsloc.prune@dh[i] <- max(apply(wbsloc.prune@diff,1,min),apply(wbsloc.prune@diff,2,min))/ns
+    wbsloc.prune@time[i] <- est$wbsloc.prune@time
+    
+    wbs2loc.prune@dnc[i] <- est$wbs2loc.prune@nocpt - no.of.cpt
+    wbs2loc.prune@mean[[i]] <- est$wbs2loc.prune@mean
+    wbs2loc.prune@mse[i] <- mean((est$wbs2loc.prune@mean - signal)^2)
+    wbs2loc.prune@cpt[[i]] <- est$wbs2loc.prune@cpt
+    wbs2loc.prune@diff <- abs(matrix(est$wbs2loc.prune@cpt,nrow=no.of.cpt,
+    ncol=length(est$wbs2loc.prune@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$wbs2loc.prune@cpt),byr=F))
+    wbs2loc.prune@dh[i] <- max(apply(wbs2loc.prune@diff,1,min),apply(wbs2loc.prune@diff,2,min))/ns
+    wbs2loc.prune@time[i] <- est$wbs2loc.prune@time
+    
+    notloc.prune@dnc[i] <- est$notloc.prune@nocpt - no.of.cpt
+    notloc.prune@mean[[i]] <- est$notloc.prune@mean
+    notloc.prune@mse[i] <- mean((est$notloc.prune@mean - signal)^2)
+    notloc.prune@cpt[[i]] <- est$notloc.prune@cpt
+    notloc.prune@diff <- abs(matrix(est$notloc.prune@cpt,nrow=no.of.cpt,
+    ncol=length(est$notloc.prune@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$notloc.prune@cpt),byr=F))
+    notloc.prune@dh[i] <- max(apply(notloc.prune@diff,1,min),apply(notloc.prune@diff,2,min))/ns
+    notloc.prune@time[i] <- est$notloc.prune@time
+    
+    tguhloc.prune@dnc[i] <- est$tguhloc.prune@nocpt - no.of.cpt
+    tguhloc.prune@mean[[i]] <- est$tguhloc.prune@mean
+    tguhloc.prune@mse[i] <- mean((est$tguhloc.prune@mean - signal)^2)
+    tguhloc.prune@cpt[[i]] <- est$tguhloc.prune@cpt
+    tguhloc.prune@diff <- abs(matrix(est$tguhloc.prune@cpt,nrow=no.of.cpt,
+    ncol=length(est$tguhloc.prune@cpt),byr=T)
+    -matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$tguhloc.prune@cpt),byr=F))
+    tguhloc.prune@dh[i] <- max(apply(tguhloc.prune@diff,1,min),apply(tguhloc.prune@diff,2,min))/ns
+    tguhloc.prune@time[i] <- est$tguhloc.prune@time
+    
+  }
+  
+  list(wbsloc.prune=wbsloc.prune, notloc.prune=notloc.prune, tguhloc.prune = tguhloc.prune, 
+  wbs2loc.prune = wbs2loc.prune)
+}
+
+seed.temp=12
+
+justnoise = rep(0,3000)
+NC.small_lp = sim.study.lp(justnoise,sigma=1,true.cpt=c(0),seed=seed.temp)
+
+justnoise2 = rep(0,50)
+NC2.small_lp = sim.study.lp(justnoise2,true.cpt=c(0),sigma=1,seed=seed.temp)
+
+justnoise3 = rep(0,5)
+NC3.small_lp = sim.study.lp(justnoise3,true.cpt=c(0),sigma=1,seed=seed.temp)
+
+justnoise4 = rep(0,10000)
+NC4.small_lp = sim.study.lp(justnoise4,sigma=1,true.cpt=c(0),seed=seed.temp)
+
+blocks = c(rep(0,205),rep(14.64,62),rep(-3.66,41),rep(7.32,164),rep(-7.32,40),rep(10.98,308),
+           rep(-4.39,82),rep(3.29,430),rep(19.03,225),rep(7.68,41),rep(15.37,61),rep(0,389))
+
+SIMR1.small_lp = sim.study.lp(blocks,true.cpt = c(205,267,308,472,512,820,902,1332,1557,1598,1659),
+sigma=10,seed=seed.temp)
+
+fms = c(rep(-0.18,139),rep(0.08,87),rep(1.07,17),rep(-0.53,57),rep(0.16,9),rep(-0.69,24),
+rep(-0.16,164))
+SIMR2.small_lp = sim.study.lp(fms,true.cpt = c(139,226,243,300,309,333),sigma=0.3,seed=seed.temp)
+
+mix = c(rep(7,11),rep(-7,10),rep(6,20),rep(-6,20),rep(5,30),rep(-5,30),rep(4,40),rep(-4,40),
+        rep(3,50),rep(-3,50),rep(2,60),rep(-2,60),rep(1,70),rep(-1,69))
+SIMR3.small_lp = sim.study.lp(mix,true.cpt=c(11,21,41,61,91,121,161,201,251,301,361,421,491), 
+sigma=4,seed=seed.temp)
+
+teeth10 = c(rep(0,11),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,10),
+rep(0,10),rep(1,10),rep(0,10),rep(1,10),rep(0,10),rep(1,9))
+
+SIMR4.small_lp = sim.study.lp(teeth10,true.cpt=seq(11,131,10),0.4,seed=seed.temp)
+
+stairs10 = c(rep(1,11),rep(2,10),rep(3,10),rep(4,10),rep(5,10),rep(6,10),rep(7,10),rep(8,10),
+rep(9,10),rep(10,10),rep(11,10),rep(12,10),rep(13,10),rep(14,10),rep(15,9))
+
+SIMR5.small_lp = sim.study.lp(stairs10,true.cpt=seq(11,141,10),sigma=0.3,seed=seed.temp)
+
+myteeth20 = rep(c(rep(0,40),rep(1.5,40)),125)
+SIMR6.small_lp = sim.study.lp(myteeth20,true.cpt = seq(40,9960,40),sigma=1,seed=seed.temp,
+m=100)
+
+extr_short_2_cpt <- c(rep(0,15), rep(2,15), rep(-0.5,20))
+SIMR8.small_lp = sim.study.lp(extr_short_2_cpt,true.cpt=c(15,30),sigma=1,seed=seed.temp,
+m=100)
+
+extr_short_2_cpt2 <- c(rep(0,3), rep(3,4), rep(0,3))
+SIMR9.small_lp = sim.study.lp(extr_short_2_cpt2,true.cpt=c(3,7),sigma=1,seed=seed.temp,
+m=100)
+
+strong_sig_low_noise <- c(rep(0,100), rep(5,500), rep(0, 1000), rep(10, 400), rep(2, 500))
+SIMR10.small_lp <- sim.study.lp(strong_sig_low_noise,true.cpt=c(100, 600, 1600, 2000),
+sigma=0.1,seed=seed.temp, m=100)
+
+one_spike_in_middle <- c(rep(0,1000),100, rep(0,999))
+SIMR11.small_lp <- sim.study.lp(one_spike_in_middle,true.cpt=c(1000, 1001),sigma=1,seed=seed.temp, 
+m=100)
+
+no_noise <- c(rep(0,250), rep(5,300), rep(0,200), rep(-4,250))
+SIMR12.small_lp <- sim.study.lp(no_noise,true.cpt=c(250, 550, 750),sigma=0,seed=seed.temp, m=1) 
+## no need for 100 replications here.
+
+linear <- seq(0,500)
+SIMR13.small_lp <- sim.study.lp(linear,true.cpt=seq(1,500,1),sigma=1,seed=seed.temp, m=100)
+
+SIMR14.small_lp <- sim.study.lp(linear,true.cpt=seq(1,500,1),sigma=0,seed=seed.temp, m=1) 
+## no need for 100 replications here.
+
+```
+
+## Detailed results
+
+### Information-criterion based results
+In this section, we give the simulation results when the *model.ic* function from the package is employed at each of the solution path methods. The results are given in Tables 1 - 7 below and a summary of the results is given in Table 8. We note that for ID, the results are presented for the *sol.idetect* function (and not for the *sol.idetect_seq*), which is the one that should be used when Isolate-Detect is combined with the information-criterion model selection algorithm of the *model.ic* function.
+
+|        |           |$\hat{N} - N$| | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$0$|$1$|$2$| $\geq 3$ | MSE                    | Time (s)|
+| ID     |           | 99|  1|  0|    0     |  49 $\times 10^{-5}$   |  0.12   |
+| NOT    |           |100|  0|  0|    0     |  43 $\times 10^{-5}$   |  0.08   |
+| TGUH   | **(NC1)** |100|  0|  0|    0     |  43 $\times 10^{-5}$   |  0.21   |
+| WBS    |           | 99|  1|  0|    0     |  49 $\times 10^{-5}$   |  0.07   |
+| WBS2   |           | 99|  1|  0|    0     |  49 $\times 10^{-5}$   |  1.13   |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     |           | 88|  7|  5|    0     |  45 $\times 10^{-3}$   |  0.005  |
+| NOT    |           | 88|  5|  5|    2     |  52 $\times 10^{-3}$   |  0.010  |
+| TGUH   | **(NC2)** | 89|  4|  5|    2     |  48 $\times 10^{-3}$   |  0.017  |
+| WBS    |           | 88|  5|  5|    2     |  52 $\times 10^{-3}$   |  0.009  |
+| WBS2   |           | 87|  5|  6|    2     |  54 $\times 10^{-3}$   |  0.022  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     |           | 60| 30| 10|    0     |  373 $\times 10^{-3}$  |  0.002  |
+| NOT    |           |  0|  0|  0|    100   |  903 $\times 10^{-3}$  |  0.002  |
+| TGUH   | **(NC3)** |  0|  0|  0|    100   |  903 $\times 10^{-3}$  |  0.003  |
+| WBS    |           |  0|  0|  0|    100   |  903 $\times 10^{-3}$  |  0.003  |
+| WBS2   |           |  0|  0|  0|    100   |  903 $\times 10^{-3}$  |  0.001  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     |           | 99| 0 |  1|    0     |  14 $\times 10^{-5}$   |  0.84   |
+| NOT    |           | 99|  0|  1|    0     |  14 $\times 10^{-5}$   |  0.17   |
+| TGUH   | **(NC4)** |100|  0|  0|    0     |  10 $\times 10^{-5}$   |  0.54   |
+| WBS    |           |100|  0|  0|    0     |  10 $\times 10^{-5}$   |  0.15   |
+| WBS2   |           |100|  0|  0|    0     |  10 $\times 10^{-5}$   |  4.09   |
+Table: Table 1: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1)-(NC4). Also the average MSE and computational times for each method are given.
+
+
+|  |  | | | |$\hat{N} - N$| | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$             |Time (s)|
+| ID     |           |       0 |     3|  40|51 |5  | 1 |     0  |2.886              |171 $\times10^{-4}$| 0.04   |
+| NOT    |           |       0 |     5|  58|35 |2  | 0 |     0  |2.733              |175 $\times10^{-4}$| 0.09   |
+| TGUH   | **(M1)**  |       0 |     5|  54|36 |4  | 1 |     0  |3.356              |212 $\times10^{-4}$| 0.16   |
+| WBS    |           |       0 |     4|  49|47 |0  | 0 |     0  |2.680              |145 $\times10^{-4}$| 0.06   |
+| WBS2   |           |       0 |     5|  47|45 |1  | 2 |     0  |2.743              |153 $\times10^{-4}$| 0.84   |
+|        |           |         |      |    |   |   |   |        |                   |                   |        |
+|        |           |         |      |    |   |   |   |        |                   |                   |        |
+| ID     |           |       0 |     2|   0|89 |7  | 2 |     0  |45 $\times 10^{-4}$|20 $\times 10^{-3}$| 0.013  |
+| NOT    |           |       0 |     2|   0|95 |3  | 0 |     0  |40 $\times 10^{-4}$|17 $\times 10^{-3}$ |0.049  |
+| TGUH   | **(M2)**  |       2 |    13|   6|62 |13 | 4 |     0  |66 $\times 10^{-4}$|46 $\times 10^{-3}$ |0.064  |
+| WBS    |           |       0 |     2|   0|95 |3  | 0 |     0  |44 $\times 10^{-4}$|17 $\times 10^{-3}$ |0.017  |
+| WBS2   |           |       0 |     1|   0|96 |3  | 0 |     0  |42 $\times 10^{-4}$|15 $\times 10^{-3}$ |0.181  |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+| ID     |           |       7 |    33|  25|28 |7  | 0 |     0  |1.626              |147 $\times 10^{-3}$| 0.015 |
+| NOT    |           |       9 |    30|  31|22 |6  | 0 |     2  |1.729              |144 $\times 10^{-3}$| 0.048 |
+| TGUH   | **(M3)**  |       12|    29|  32|16 |4  | 2 |     5  |1.985              |181 $\times 10^{-3}$| 0.059 |
+| WBS    |           |       11|    24|  31|29 |4  | 0 |     1  |1.670              |141 $\times 10^{-3}$| 0.034 |
+| WBS2   |           |       9 |    26|  32|30 |3  | 0 |     0  |1.578              |146 $\times 10^{-3}$| 0.176 |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+| ID     |           |       3 |     5|   2|66 |21 | 2 |     1  |61 $\times10^{-3}$ |44 $\times 10^{-3}$ | 0.011 |
+| NOT    |           |       6 |    10|   0|69 |12 | 3 |     0  |64 $\times10^{-3}$ |43 $\times 10^{-3}$ | 0.021 |
+| TGUH   | **(M4)**  |       22|     2|   2|35 |14 |13 |    12  |102 $\times10^{-3}$|215 $\times 10^{-3}$| 0.027 |
+| WBS    |           |       1 |     4|   0|82 |12 | 0 |     1  |54 $\times10^{-3}$ |31 $\times 10^{-3}$ | 0.012 |
+| WBS2   |           |       2 |     5|   0|75 |17 | 0 |     1  |58 $\times10^{-3}$ |40 $\times 10^{-3}$ | 0.039 |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+| ID     |           |       0 |     0|   0|89 |9  | 1 |     1  |22 $\times10^{-3}$ |10 $\times 10^{-3}$ | 0.012 |
+| NOT    |           |       0 |     0|   0|86 |8  | 4 |     2  |21 $\times10^{-3}$ |10 $\times 10^{-3}$ | 0.100 |
+| TGUH   | **(M5)**  |       0 |     0|   0|74 |19 | 5 |     2  |24 $\times10^{-3}$ |13 $\times 10^{-3}$ | 0.031 |
+| WBS    |           |       0 |     0|   0|60 |34 | 3 |     3  |24 $\times10^{-3}$ |14 $\times 10^{-3}$ | 0.032 |
+| WBS2   |           |       0 |     0|   0|60 |30 | 8 |     2  |24 $\times10^{-3}$ |14 $\times 10^{-3}$ | 0.044 |
+Table: Table 2: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M1)-(M5). The average MSE, $d_H$ and computational time are also given.
+
+
+By default, the maximum number of change-points (argument *q.max* in the *model.ic* function) that the information criterion approach can detect is set to be equal to 25. The signal (M6) has 249 change-points; thus, we need to increase *q.max* and in the results that follow in Table 3, we set this argument to be equal to 300, which is sufficiently higher than the true number of change-points.
+
+|  | | |$\hat{N} - N$  | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$\leq -150$|$(-150,-50]$|$(-50,-10)$|$[-10,10]$|$(10,50]$|$>50$| MSE |$d_H$              |Time (s)|
+| ID     |       0   |           0|          0|      100 |      0  |   0 |0.110|29 $\times10^{-4}$ |0.31    |
+| NOT    |       13  |          87|          0|        0 |      0  |   0 |0.483|167 $\times10^{-4}$|0.13    |
+| TGUH   |       0   |         100|          0|        0 |      0  |   0 |0.376|84  $\times10^{-4}$|0.39    |
+| WBS    |       0   |         100|          0|        0 |      0  |   0 |0.453|168 $\times10^{-4}$|0.12    |
+| WBS2   |       0   |           0|          0|      100 |      0  |   0 |0.108|34  $\times10^{-4}$|2.97    |
+
+Table: Table 3: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M6). The average MSE, $d_H$ and computational time are also given.
+
+|  |  | | |$\hat{N} - N$  | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model  |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$              |Time (s)|
+| ID     |        |   0|   0| 78| 19| 3 |0.203|47 $\times10^{-3}$ |0.008   |
+| NOT    |        |   0|   0| 79| 15| 6 |0.209|50 $\times10^{-3}$ |0.010   |
+| TGUH   |**(M7)**|   0|   0| 71| 24| 5 |0.257|58 $\times10^{-3}$ |0.016   |
+| WBS    |        |   0|   0| 81| 12| 7 |0.207|49 $\times10^{-3}$ |0.008   |
+| WBS2   |        |   0|   0| 80| 14| 6 |0.200|47 $\times10^{-3}$ |0.019   |
+|        |        |    |    |   |   |   |     |                   |        |
+|        |        |    |    |   |   |   |     |                   |        |
+| ID     |        |  14|   6| 68| 11| 1 |0.884|164 $\times10^{-3}$|0.003   |
+| NOT    |        |   0|   0|  0|  0|100|0.920|200 $\times10^{-3}$|0.003   |
+| TGUH   |**(M8)**|   0|   0|  0|  0|100|0.920|200 $\times10^{-3}$|0.005   |
+| WBS    |        |   0|   0|  0|  0|100|0.920|200 $\times10^{-3}$|0.003   |
+| WBS2   |        |   0|   0|  0|  0|100|0.920|200 $\times10^{-3}$|0.004   |
+Table: Table 4: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M7) and (M8). The average MSE, $d_H$ and computational time are also given.
+
+
+|  | | | |$\hat{N} - N$  | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$             |Time (s)|
+| ID     |       0 |     0|   0|98 |2  | 0 |     0  |23 $\times 10^{-6}$|29 $\times10^{-3}$ | 0.038  |
+| NOT    |       0 |     0|   0|98 |2  | 0 |     0  |23 $\times 10^{-6}$|26 $\times10^{-3}$ | 0.071  |
+| TGUH   |       0 |     0|   0|98 |2  | 0 |     0  |23 $\times 10^{-6}$|29 $\times10^{-3}$ | 0.132  |
+| WBS    |       0 |     0|   0|98 |2  | 0 |     0  |23 $\times 10^{-6}$|26 $\times10^{-3}$ | 0.051  |
+| WBS2   |       0 |     0|   0|98 |2  | 0 |     0  |23 $\times 10^{-6}$|26 $\times10^{-3}$ | 0.712  |
+Table: Table 5: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M9). The average MSE, $d_H$ and computational time are also given.
+
+|  | | |$\hat{N} - N$  | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$               |Time (s)|
+| ID     |   0|   0|100| 0 | 0 |0.001|0                   |0.039   |
+| NOT    |   1|   0| 98| 1 | 0 |0.051|66 $\times10^{-4}$  |0.062   |
+| TGUH   |  22|   0|  7| 10| 61|1.293|3981 $\times10^{-4}$|0.114   |
+| WBS    |   1|   0| 97|  2| 0 |0.052|115 $\times10^{-4}$ |0.050   |
+| WBS2   |   0|   0| 98|  2| 0 |0.002|66 $\times10^{-4}$  |0.569   |
+Table: Table 6: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M10). The average MSE, $d_H$ and computational time are also given.
+
+For the signal (M11), since there is no noise, we do not need to repeat our simulations 100 times; the input will be the same each time. All methods, have managed to detect all change-points accurately in this noiseless scenario and therefore, the results are not presented in a table. We proceed with the results for (M12). Since there are 500 change-points (the investigation is under a piecewise-constant and not a piecewise-linear signal) we use *q.max* = 550, where *q.max* is the argument for the maximum number of change-points that we allow to be detected in a given signal. The results are in Table 7 below.
+
+| Method |$\hat{N}$|MSE  |Time (s)|
+|-------------|-------------|-------------|-------------|
+| ID     |  99.64  |2.664|   0.545|
+| NOT    |  67.64  |6.277|   1.076|
+| TGUH   |  500    |0.999|   1.012|
+| WBS    |  71.85  |5.241|   0.668|
+| WBS2   |  500    |0.999|   1.081|
+Table: Table 7: The average $\hat{N}$, MSE, and computational times over 100 simulated data sequences from the linear signal (M12).
+
+For the noiseless (M13), we do not present the results in a table. ID, NOT, TGUH, WBS, and WBS2 detect 83, 70, 500, 64, and 500, respectively. Table 8 below gives a summary of the results for all signals used in the simulation study.
+
+|  | | |Methods | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|
+|          | ID | NOT |TGUH |WBS |WBS2|
+|**Models**| Criterion:|Within| top $10\%$| in terms| of accuracy|
+|**(NC1)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(NC2)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(NC3)**|$\checkmark$|            |            |            |            |
+|**(NC4)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(M1)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M2)** |$\checkmark$|$\checkmark$|            |$\checkmark$|$\checkmark$|
+|**(M3)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$|
+|**(M4)** |            |            |            |$\checkmark$|$\checkmark$|
+|**(M5)** |$\checkmark$|$\checkmark$|            |            |            |
+|**(M6)** |$\checkmark$|            |            |            |$\checkmark$|
+|**(M7)** |$\checkmark$|$\checkmark$|            |$\checkmark$|$\checkmark$|
+|**(M8)** |$\checkmark$|            |            |            |            |
+|**(M9)** |$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(M10)**|$\checkmark$|$\checkmark$|            |$\checkmark$|$\checkmark$|
+|**(M11)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(M12)**|            |            |$\checkmark$|            |$\checkmark$|
+|**(M13)**|            |            |$\checkmark$|            |$\checkmark$|
+|         | Criterion:|The top| two methods| in terms| of speed|
+|**(NC1)**|            |$\checkmark$|            |$\checkmark$|            |
+|**(NC2)**|$\checkmark$|            |            |$\checkmark$|            |
+|**(NC3)**|$\checkmark$|$\checkmark$|            |            |$\checkmark$|
+|**(NC4)**|            |$\checkmark$|            |$\checkmark$|            |
+|**(M1)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M2)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M3)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M4)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M5)** |$\checkmark$|            |$\checkmark$|            |            |
+|**(M6)** |            |$\checkmark$|            |$\checkmark$|            |
+|**(M7)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M8)** |$\checkmark$|$\checkmark$|            |$\checkmark$|            |
+|**(M9)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M10)**|$\checkmark$|            |            |$\checkmark$|            |
+|**(M12)**|$\checkmark$|            |            |$\checkmark$|            |
+Table: Table 8: Summary of the results when the information criterion model selection was employed for all the solution path algorithms.
+
+<!-- ### Thresholding based results with constant $C = 1$ -->
+<!-- In this section, we give the simulation results when the *model.thresh* function from the package is employed at each of the solution path methods. The results are given in Tables 9 - 15 below and a summary of the results is given in Table 16. We note that for ID, the results are presented for the *sol.idetect_seq* function (and not for the *sol.idetect*), which is the one that should be used when Isolate-Detect is combined with the thresholding model selection algorithm of the *model.thresh* function. -->
+
+<!-- |  |  | $\hat{N} - N$ | | | -->
+<!-- |--|--|---------------|-|-|-|-|-| -->
+<!-- | Method | Model     | 0 | 1 | 2 | $\geq 3$ | MSE                    | Time (s)| -->
+<!-- | ID     |           | 40| 8 | 32|    20    |  499 $\times 10^{-5}$  |  0.14   | -->
+<!-- | NOT    |           | 15| 20| 27|    38    |  525 $\times 10^{-5}$  |  0.06   | -->
+<!-- | TGUH   | **(NC1)** | 56| 34|  9|    1     |  43 $\times 10^{-5}$   |  0.17   | -->
+<!-- | WBS    |           | 14| 21| 19|    46    |  556 $\times 10^{-5}$  |  0.05   | -->
+<!-- | WBS2   |           | 20| 24| 20|    36    |  331 $\times 10^{-5}$  |  0.91   | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- | ID     |           | 53| 11| 17|    19    |  128 $\times 10^{-3}$  |  0.001  | -->
+<!-- | NOT    |           | 36| 15| 13|    36    |  167 $\times 10^{-3}$  |  0.022  | -->
+<!-- | TGUH   | **(NC2)** | 62| 23| 12|    3     |  48 $\times 10^{-3}$   |  0.011  | -->
+<!-- | WBS    |           | 30| 14| 12|    44    |  207 $\times 10^{-3}$  |  0.023  | -->
+<!-- | WBS2   |           | 35| 13| 11|    41    |  192 $\times 10^{-3}$  |  0.013  | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- | ID     |           | 49| 32| 17|    2     |  419 $\times 10^{-3}$  |  0.001  | -->
+<!-- | NOT    |           | 56| 33|  3|    8     |  363 $\times 10^{-3}$  |  0.021  | -->
+<!-- | TGUH   | **(NC3)** | 52| 32|  8|    8     |  391 $\times 10^{-3}$  |  0.001  | -->
+<!-- | WBS    |           | 43| 38| 10|    9     |  443 $\times 10^{-3}$  |  0.021  | -->
+<!-- | WBS2   |           | 45| 32| 17|    6     |  439 $\times 10^{-3}$  |  0.001  | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- | ID     |           | 32| 4 | 35|    29    |  209 $\times 10^{-5}$  |  1.58   | -->
+<!-- | NOT    |           | 25| 25| 25|    25    |  103 $\times 10^{-5}$  |  0.12   | -->
+<!-- | TGUH   | **(NC4)** | 45| 37| 13|    5     |  15 $\times 10^{-5}$   |  0.43   | -->
+<!-- | WBS    |           | 20| 25| 21|    34    |  126 $\times 10^{-5}$  |  0.12   | -->
+<!-- | WBS2   |           | 21| 25| 21|    33    |  85 $\times 10^{-5}$   |  3.45   | -->
+<!-- Table: Table 9: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1)-(NC4). Also the average MSE and computational times for each method are given. -->
+
+
+<!-- |  |  | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|--|-|-|-|---------------|-|-|-|-|-|-| -->
+<!-- | Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)| -->
+<!-- | ID     |           |       0 |     0|  12|39 |13 | 20|     16 |3.226              |41 $\times10^{-3}$  | 0.02   | -->
+<!-- | NOT    |           |       0 |     5|  17|24 |24 | 12|     18 |3.257              |64 $\times10^{-3}$  | 0.06   | -->
+<!-- | TGUH   | **(M1)**  |       0 |     3|  27|40 |23 | 4 |     3  |3.190              |40 $\times10^{-3}$  | 0.12   | -->
+<!-- | WBS    |           |       0 |     0|  12|19 |28 | 19|     22 |2.975              |70 $\times10^{-3}$  | 0.05   | -->
+<!-- | WBS2   |           |       0 |     0|   7|22 |17 | 14|     40 |3.210              |63 $\times10^{-3}$  | 0.62   | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       0 |     0|   0|55 |14 | 19|     12 |53 $\times 10^{-4}$|67 $\times 10^{-3}$ | 0.008  | -->
+<!-- | NOT    |           |       0 |     0|   3|32 |20 | 17|     28 |60 $\times 10^{-4}$|111 $\times 10^{-3}$| 0.035  | -->
+<!-- | TGUH   | **(M2)**  |       0 |     1|  31|48 |13 | 6 |     1  |78 $\times 10^{-4}$|47 $\times 10^{-3}$ | 0.052  | -->
+<!-- | WBS    |           |       0 |     0|   0|30 |14 | 20|     36 |56 $\times 10^{-4}$|130 $\times 10^{-3}$| 0.029  | -->
+<!-- | WBS2   |           |       0 |     0|   0|27 |27 | 19|     37 |60 $\times 10^{-4}$|112 $\times 10^{-3}$| 0.145  | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       0 |     7|  16|41 |21 | 9 |     6  |1.723              |82 $\times 10^{-3}$ |  0.009 | -->
+<!-- | NOT    |           |       1 |     3|  21|32 |26 | 9 |     8  |1.871              |80 $\times 10^{-3}$ |  0.041 | -->
+<!-- | TGUH   | **(M3)**  |       14|    31|  36|14 |3  | 1 |     1  |2.146              |153 $\times 10^{-3}$|  0.061 | -->
+<!-- | WBS    |           |       0 |     4|  12|42 |22 | 10|     10 |1.667              |67 $\times 10^{-3}$ |  0.032 | -->
+<!-- | WBS2   |           |       0 |     2|  14|29 |19 | 15|     21 |1.730              |78 $\times 10^{-3}$ |  0.177 | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       2 |     3|   6|78 |8  | 3 |     0  |53 $\times10^{-3}$ |27 $\times 10^{-3}$ |  0.006 | -->
+<!-- | NOT    |           |       3 |     2|  16|55 |16 | 6 |     2  |63 $\times10^{-3}$ |37 $\times 10^{-3}$ |  0.026 | -->
+<!-- | TGUH   | **(M4)**  |       54|    20|  21| 4 |1  | 0 |     0  |129 $\times10^{-3}$|91 $\times 10^{-3}$ |  0.026 | -->
+<!-- | WBS    |           |       0 |     4|   3|72 |14 | 5 |     2  |50 $\times10^{-3}$ |22 $\times 10^{-3}$ |  0.023 | -->
+<!-- | WBS2   |           |       1 |     4|   3|70 |16 | 4 |     2  |53 $\times10^{-3}$ |24 $\times 10^{-3}$ |  0.035 | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       0 |     0|   1|90 |7  | 2 |     0  |21 $\times10^{-3}$ |10 $\times 10^{-3}$ |  0.005 | -->
+<!-- | NOT    |           |       0 |     0|  19|63 |15 | 2 |     1  |30 $\times10^{-3}$ |22 $\times 10^{-3}$ |  0.040 | -->
+<!-- | TGUH   | **(M5)**  |       0 |     0|   1|92 |6  | 1 |     0  |23 $\times10^{-3}$ |10 $\times 10^{-3}$ |  0.026 | -->
+<!-- | WBS    |           |       0 |     0|   0|67 |23 | 7 |     3  |24 $\times10^{-3}$ |14 $\times 10^{-3}$ |  0.025 | -->
+<!-- | WBS2   |           |       0 |     0|   1|68 |18 | 8 |     5  |24 $\times10^{-3}$ |14 $\times 10^{-3}$ |  0.037 | -->
+<!-- Table: Table 10: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M1)-(M5). The average MSE, $d_H$ and computational time are also given. -->
+
+
+<!-- |  | | |$\hat{N} - N$ | | | | -->
+<!-- |--|-|-|---------------|-|-|-|-|-|-| -->
+<!-- | Method |$\leq -150$|$(-150,-50]$|$(-50,-10)$|$[-10,10]$|$(10,50]$|$>50$| MSE |$d_H$              |Time (s)| -->
+<!-- | ID     |       0   |           0|          0|      100 |      0  |   0 |0.110|29 $\times10^{-4}$ |0.25    | -->
+<!-- | NOT    |       8   |          92|          0|        0 |      0  |   0 |0.482|161 $\times10^{-4}$|0.12    | -->
+<!-- | TGUH   |       0   |         100|          0|        0 |      0  |   0 |0.371|80 $\times10^{-4}$ |0.41    | -->
+<!-- | WBS    |       0   |         100|          0|        0 |      0  |   0 |0.452|149 $\times10^{-4}$|0.11    | -->
+<!-- | WBS2   |       0   |           0|          0|      100 |      0  |   0 |0.109|35 $\times10^{-4}$ |2.62    | -->
+
+<!-- Table: Table 11: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M6). The average MSE, $d_H$ and computational time are also given. -->
+
+<!-- |  | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|--|-|-|---------------|-|-|-|-|-| -->
+<!-- | Method | Model  |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$              |Time (s)| -->
+<!-- | ID     |        |   0|   0| 63| 15|22 |0.233|89 $\times10^{-3}$ |0.003   | -->
+<!-- | NOT    |        |   0|  19| 33| 20| 28|0.373|167 $\times10^{-3}$|0.022   | -->
+<!-- | TGUH   |**(M7)**|   0|   2| 69| 17| 12|0.236|83 $\times10^{-3}$ |0.010   | -->
+<!-- | WBS    |        |   0|   0| 42| 18| 40|0.286|136 $\times10^{-3}$|0.022   | -->
+<!-- | WBS2   |        |   0|   0| 44| 18| 38|0.283|131 $\times10^{-3}$|0.014   | -->
+<!-- |        |        |    |    |   |   |   |     |                   |        | -->
+<!-- |        |        |    |    |   |   |   |     |                   |        | -->
+<!-- | ID     |        |  12|   9| 65| 10| 4 |0.935|170 $\times10^{-3}$|0.001   | -->
+<!-- | NOT    |        |  14|  43| 31| 10| 2 |1.359|301 $\times10^{-3}$|0.022   | -->
+<!-- | TGUH   |**(M8)**|  18|  18| 51|  9| 4 |1.159|236 $\times10^{-3}$|0.019   | -->
+<!-- | WBS    |        |   6|  14| 63| 12| 5 |0.888|152 $\times10^{-3}$|0.021   | -->
+<!-- | WBS2   |        |   6|  14| 63| 12| 5 |0.888|152 $\times10^{-3}$|0.001   | -->
+<!-- Table: Table 12: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M7) and (M8). The average MSE, $d_H$ and computational time are also given. -->
+
+
+<!-- |  | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|-|-|-|---------------|-|-|-|-|-|-| -->
+<!-- | Method |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$             |Time (s)| -->
+<!-- | ID     |       0 |     0|   0|45 |12 | 23|     20 |75 $\times 10^{-6}$|59 $\times10^{-3}$ | 0.035  | -->
+<!-- | NOT    |       0 |     0|   0|21 |28 | 28|     23 |64 $\times 10^{-6}$|102 $\times10^{-3}$| 0.064  | -->
+<!-- | TGUH   |       0 |     0|   0|56 |31 | 11|     2  |24 $\times 10^{-6}$|49 $\times10^{-3}$ | 0.134  | -->
+<!-- | WBS    |       0 |     0|   0|18 |23 | 26|     33 |68 $\times 10^{-6}$|107 $\times10^{-3}$| 0.046  | -->
+<!-- | WBS2   |       0 |     0|   0|12 |28 | 18|     42 |79 $\times 10^{-6}$|97 $\times10^{-3}$ | 0.742  | -->
+<!-- Table: Table 13: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M9). The average MSE, $d_H$ and computational time are also given. -->
+
+<!-- | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|-|-|---------------|-|-|-|-|-| -->
+<!-- | Method |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$               |Time (s)| -->
+<!-- | ID     |   0|   0| 49| 2 | 49|0.007|137 $\times 10^{-3}$|0.037   | -->
+<!-- | NOT    |   0|   0| 24| 21| 55|0.703|237 $\times10^{-3}$ |0.055   | -->
+<!-- | TGUH   |   0|  52| 34| 10|  4|4.490|101 $\times10^{-3}$ |0.118   | -->
+<!-- | WBS    |   0|   0| 18| 16| 66|0.158|252 $\times10^{-3}$ |0.049   | -->
+<!-- | WBS2   |   0|   0| 24| 25| 51|0.007|229 $\times10^{-3}$ |0.638   | -->
+<!-- Table: Table 14: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M10). The average MSE, $d_H$ and computational time are also given. -->
+
+<!-- For the signal (M11), since there is no noise, we do not need to repeat our simulations 100 times; the input will be the same each time. All methods, have managed to detect all change-points accurately in this noiseless scenario and therefore, the results are not presented in a table. We proceed, in Table 15 below, with the results for (M12). -->
+
+<!-- | Method |$\hat{N}$|MSE  |Time (s)| -->
+<!-- |--------|---------|-----|--------| -->
+<!-- | ID     |  117.90 |1.997|   0.040| -->
+<!-- | NOT    |  79.87  |5.109|   0.171| -->
+<!-- | TGUH   |  113.19 |2.099|   0.063| -->
+<!-- | WBS    |  86.83  |4.236|   0.034| -->
+<!-- | WBS2   |  118.56 |1.983|   0.152| -->
+<!-- Table: Table 15: The average $\hat{N}$, MSE, and computational times over 100 simulated data sequences from the linear signal (M12). -->
+
+<!-- For the noiseless (M13), we do not present the results in a table because all methods detect the 500 change-points without an error. Table 16 below gives a summary of the results for all signals used in the simulation study. -->
+
+<!-- |  | | |Methods | | | -->
+<!-- |----------|-|-|--------|-|-| -->
+<!-- |          | ID | NOT |TGUH |WBS |WBS2| -->
+<!-- |**Models**| Criterion:|Within| top $10\%$| in terms| of accuracy| -->
+<!-- |**(NC1)**|            |      |$\checkmark$|        |            | -->
+<!-- |**(NC2)**|            |      |$\checkmark$|        |            | -->
+<!-- |**(NC3)**|$\checkmark$|$\checkmark$|$\checkmark$|  |            | -->
+<!-- |**(NC4)**|            |      |$\checkmark$|        |            | -->
+<!-- |**(M1)** |$\checkmark$|            |$\checkmark$|  |            | -->
+<!-- |**(M2)** |$\checkmark$|            |            |  |            | -->
+<!-- |**(M3)** |$\checkmark$|            |            |$\checkmark$|  | -->
+<!-- |**(M4)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$| -->
+<!-- |**(M5)** |$\checkmark$|      |$\checkmark$|        |            | -->
+<!-- |**(M6)** |$\checkmark$|            |            |            |$\checkmark$| -->
+<!-- |**(M7)** |$\checkmark$|      |$\checkmark$|     |            | -->
+<!-- |**(M8)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$| -->
+<!-- |**(M9)** |            |      |$\checkmark$|     |            | -->
+<!-- |**(M10)**|$\checkmark$|      |            |     |            | -->
+<!-- |**(M11)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$| -->
+<!-- |**(M12)**|$\checkmark$|            |$\checkmark$|            |$\checkmark$| -->
+<!-- |**(M13)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$| -->
+<!-- |         | Criterion:|The top| two methods| in terms| of speed| -->
+<!-- |**(NC1)**|            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(NC2)**|$\checkmark$|            |$\checkmark$|            |            | -->
+<!-- |**(NC3)**|$\checkmark$|            |$\checkmark$|            |$\checkmark$| -->
+<!-- |**(NC4)**|            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M1)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M2)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M3)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M4)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M5)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M6)** |            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M7)** |$\checkmark$|            |$\checkmark$|            |            | -->
+<!-- |**(M8)** |$\checkmark$|            |            |            |$\checkmark$| -->
+<!-- |**(M9)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M10)**|$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M12)**|$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- Table: Table 16: Summary of the results when the thresholding model selection was employed for all the solution path algorithms. -->
+
+<!-- ### Thresholding based results with constant $C = 1.1$ -->
+<!-- In this section, we give the simulation results when the *model.thresh* function from the package is employed at each of the solution path methods. The results are given in Tables 9 - 15 below and a summary of the results is given in Table 16. We note that for ID, the results are presented for the *sol.idetect_seq* function (and not for the *sol.idetect*), which is the one that should be used when Isolate-Detect is combined with the thresholding model selection algorithm of the *model.thresh* function. -->
+
+<!-- |  |  | $\hat{N} - N$ | | | -->
+<!-- |--|--|---------------|-|-|-|-|-| -->
+<!-- | Method | Model     | 0 | 1 | 2 | $\geq 3$ | MSE                    | Time (s)| -->
+<!-- | ID     |           | 77| 4 |  15|    4    | 228 $\times 10^{-5}$   |  0.240  | -->
+<!-- | NOT    |           | 62| 26|  6|    6     |  141 $\times 10^{-5}$  |  0.083  | -->
+<!-- | TGUH   | **(NC1)** | 85| 14|  1|    0     |  46 $\times 10^{-5}$   |  0.198  | -->
+<!-- | WBS    |           | 57| 19| 13|    11    |  220 $\times 10^{-5}$  |  0.064  | -->
+<!-- | WBS2   |           | 65| 21|  9|    5     |  156 $\times 10^{-5}$  |  1.052  | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- | ID     |           | 65| 10| 13|    12    |  99  $\times 10^{-3}$  |  0.003  | -->
+<!-- | NOT    |           | 51| 18| 13|    18    |  105 $\times 10^{-3}$  |  0.002  | -->
+<!-- | TGUH   | **(NC2)** | 73| 21|  4|    2     |  34 $\times 10^{-3}$   |  0.014  | -->
+<!-- | WBS    |           | 43| 16| 16|    25    |  144 $\times 10^{-3}$  |  0.002  | -->
+<!-- | WBS2   |           | 45| 19| 14|    22    |  134 $\times 10^{-3}$  |  0.019  | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- | ID     |           | 52| 32| 14|    2     |  400 $\times 10^{-3}$  |  0.002  | -->
+<!-- | NOT    |           | 65| 25|  2|    8     |  324 $\times 10^{-3}$  |  0.002  | -->
+<!-- | TGUH   | **(NC3)** | 59| 30|  3|    8     |  355 $\times 10^{-3}$  |  0.001  | -->
+<!-- | WBS    |           | 48| 35|  9|    8     |  421 $\times 10^{-3}$  |  0.001  | -->
+<!-- | WBS2   |           | 48| 35|  9|    8     |  421 $\times 10^{-3}$  |  0.002  | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- | ID     |           | 79| 5 | 15|    1     |  13 $\times 10^{-5}$   |  1.065  | -->
+<!-- | NOT    |           | 78| 15|  6|    1     |  30 $\times 10^{-5}$   |  0.122  | -->
+<!-- | TGUH   | **(NC4)** | 87| 12|  1|    0     |  12 $\times 10^{-5}$   |  0.375  | -->
+<!-- | WBS    |           | 75| 15|  9|    1     |  33 $\times 10^{-5}$   |  0.115  | -->
+<!-- | WBS2   |           | 76| 18|  5|    1     |  19 $\times 10^{-5}$   |  3.057  | -->
+<!-- Table: Table 9: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1)-(NC4). Also the average MSE and computational times for each method are given. -->
+
+
+<!-- |  |  | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|--|-|-|-|---------------|-|-|-|-|-|-| -->
+<!-- | Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)| -->
+<!-- | ID     |           |       0 |     2|  39|50 |4  |  5|     0  |2.938              |21 $\times10^{-3}$  | 0.025  | -->
+<!-- | NOT    |           |       0 |     9|  50|31 |10 |  0|     0  |3.133              |35 $\times10^{-3}$  | 0.063  | -->
+<!-- | TGUH   | **(M1)**  |       0 |     8|  57|31 |4  |  0|     0  |3.530              |25 $\times10^{-3}$  | 0.110  | -->
+<!-- | WBS    |           |       0 |     1|  47|42 |9  |  1|     0  |2.781              |31 $\times10^{-3}$  | 0.049  | -->
+<!-- | WBS2   |           |       0 |     1|  26|47 |17 |  6|     3  |2.871              |34 $\times10^{-3}$  | 0.582  | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       0 |     0|   1|84 |10 |  4|     1  |45 $\times 10^{-4}$|36 $\times 10^{-3}$ | 0.007  | -->
+<!-- | NOT    |           |       0 |     1|  16|58 |18 |  5|     2  |57 $\times 10^{-4}$|62 $\times 10^{-3}$ | 0.039  | -->
+<!-- | TGUH   | **(M2)**  |       0 |     1|  51|44 |4  |  0|     0  |90 $\times 10^{-4}$|35 $\times 10^{-3}$ | 0.052  | -->
+<!-- | WBS    |           |       0 |     0|   2|57 |31 |  7|     3  |49 $\times 10^{-4}$|68 $\times 10^{-3}$ | 0.030  | -->
+<!-- | WBS2   |           |       0 |     0|   1|65 |25 |  7|     2  |47 $\times 10^{-4}$|47 $\times 10^{-3}$ | 0.146  | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       0 |    12|  36|39 |11 | 2 |     0  |1.591              |99 $\times 10^{-3}$ |  0.010 | -->
+<!-- | NOT    |           |       2 |    14|  37|33 |10 | 4 |     0  |1.931              |99 $\times 10^{-3}$ |  0.041 | -->
+<!-- | TGUH   | **(M3)**  |       32|    33|  27|8  |0  | 0 |     0  |2.416              |206 $\times 10^{-3}$|  0.058 | -->
+<!-- | WBS    |           |       0 |     7|  38|33 |14 |  7|     1  |1.659              |86 $\times 10^{-3}$ |  0.031 | -->
+<!-- | WBS2   |           |       0 |    11|  34|37 |9  |  6|     3  |1.556              |101 $\times 10^{-3}$|  0.161 | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       6 |     5|  13|70 |5  | 1 |     0  |62 $\times10^{-3}$ |38 $\times 10^{-3}$ |  0.006 | -->
+<!-- | NOT    |           |       3 |     9|  23|49 |13 | 3 |     0  |72 $\times10^{-3}$ |45 $\times 10^{-3}$ |  0.012 | -->
+<!-- | TGUH   | **(M4)**  |       74|    15|   8| 3 |0  | 0 |     0  |156 $\times10^{-3}$|113 $\times 10^{-3}$|  0.026 | -->
+<!-- | WBS    |           |       2 |     4|  12|69 |12 | 1 |     0  |57 $\times10^{-3}$ |32 $\times 10^{-3}$ |  0.006 | -->
+<!-- | WBS2   |           |       3 |     3|  16|64 |13 | 1 |     0  |60 $\times10^{-3}$ |35 $\times 10^{-3}$ |  0.036 | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       0 |     0|   0|95 |3  | 2 |     0  |22 $\times10^{-3}$ |10 $\times 10^{-3}$ |  0.006 | -->
+<!-- | NOT    |           |       0 |     0|  29|62 |8  | 1 |     0  |31 $\times10^{-3}$ |26 $\times 10^{-3}$ |  0.052 | -->
+<!-- | TGUH   | **(M5)**  |       0 |     0|   0|99 |1  | 0 |     0  |23 $\times10^{-3}$ |9 $\times 10^{-3}$  |  0.026 | -->
+<!-- | WBS    |           |       0 |     0|   0|83 |12 | 3 |     2  |25 $\times10^{-3}$ |13 $\times 10^{-3}$ |  0.024 | -->
+<!-- | WBS2   |           |       0 |     0|   0|74 |23 | 2 |     1  |25 $\times10^{-3}$ |14 $\times 10^{-3}$ |  0.038 | -->
+<!-- Table: Table 10: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M1)-(M5). The average MSE, $d_H$ and computational time are also given. -->
+
+
+<!-- |  | | |$\hat{N} - N$ | | | | -->
+<!-- |--|-|-|---------------|-|-|-|-|-|-| -->
+<!-- | Method |$\leq -150$|$(-150,-50]$|$(-50,-10)$|$[-10,10]$|$(10,50]$|$>50$| MSE |$d_H$              |Time (s)| -->
+<!-- | ID     |       0   |           0|          3|       97 |      0  |   0 |0.116|45 $\times10^{-4}$ |0.208   | -->
+<!-- | NOT    |       87  |          13|          0|        0 |      0  |   0 |0.497|211 $\times10^{-4}$|0.129   | -->
+<!-- | TGUH   |       0   |         100|          0|        0 |      0  |   0 |0.450|128 $\times10^{-4}$|0.388   | -->
+<!-- | WBS    |      18   |          82|          0|        0 |      0  |   0 |0.475|202 $\times10^{-4}$|0.119   | -->
+<!-- | WBS2   |       0   |           0|          3|       97 |      0  |   0 |0.120|55 $\times10^{-4}$ |3.041   | -->
+
+<!-- Table: Table 11: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M6). The average MSE, $d_H$ and computational time are also given. -->
+
+<!-- |  | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|--|-|-|---------------|-|-|-|-|-| -->
+<!-- | Method | Model  |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$              |Time (s)| -->
+<!-- | ID     |        |   0|   0| 83| 11| 6 |0.199|57 $\times10^{-3}$ |0.002   | -->
+<!-- | NOT    |        |   0|  28| 47| 14| 11|0.385|152 $\times10^{-3}$|0.002   | -->
+<!-- | TGUH   |**(M7)**|   0|   1| 85| 11| 3 |0.245|65 $\times10^{-3}$ |0.010   | -->
+<!-- | WBS    |        |   0|   0| 67| 17| 16|0.222|80 $\times10^{-3}$ |0.002   | -->
+<!-- | WBS2   |        |   0|   0| 69| 16| 15|0.216|77 $\times10^{-3}$ |0.015   | -->
+<!-- |        |        |    |    |   |   |   |     |                   |        | -->
+<!-- |        |        |    |    |   |   |   |     |                   |        | -->
+<!-- | ID     |        |  19|   8| 65|  6| 2 |1.023|203 $\times10^{-3}$|0.002   | -->
+<!-- | NOT    |        |  22|  39| 30|  7| 2 |1.463|336 $\times10^{-3}$|0.002   | -->
+<!-- | TGUH   |**(M8)**|  24|  19| 49|  6| 2 |1.238|268 $\times10^{-3}$|0.003   | -->
+<!-- | WBS    |        |  14|  11| 66|  7| 2 |0.972|182 $\times10^{-3}$|0.001   | -->
+<!-- | WBS2   |        |  14|  11| 66|  7| 2 |0.972|182 $\times10^{-3}$|0.003   | -->
+<!-- Table: Table 12: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M7) and (M8). The average MSE, $d_H$ and computational time are also given. -->
+
+
+<!-- |  | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|-|-|-|---------------|-|-|-|-|-|-| -->
+<!-- | Method |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$             |Time (s)| -->
+<!-- | ID     |       0 |     0|   0|82 |8  | 10|     0  |33 $\times 10^{-6}$|15 $\times10^{-3}$ | 0.038  | -->
+<!-- | NOT    |       0 |     0|   0|72 |17 | 9 |     2  |32 $\times 10^{-6}$|29 $\times10^{-3}$ | 0.064  | -->
+<!-- | TGUH   |       0 |     0|   0|85 |14 | 1 |     0  |22 $\times 10^{-6}$|14 $\times10^{-3}$ | 0.126  | -->
+<!-- | WBS    |       0 |     0|   0|58 |24 | 15|     3  |39 $\times 10^{-6}$|42 $\times10^{-3}$ | 0.046  | -->
+<!-- | WBS2   |       0 |     0|   0|67 |20 | 13|     0  |33 $\times 10^{-6}$|30 $\times10^{-3}$ | 0.727  | -->
+<!-- Table: Table 13: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M9). The average MSE, $d_H$ and computational time are also given. -->
+
+<!-- | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|-|-|---------------|-|-|-|-|-| -->
+<!-- | Method |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$               |Time (s)| -->
+<!-- | ID     |   0|   0| 86| 5 |  9|0.003|38  $\times 10^{-3}$|0.037   | -->
+<!-- | NOT    |   0|   0| 76| 17|  7|0.301|83  $\times10^{-3}$ |0.051   | -->
+<!-- | TGUH   |   0|  89|  9|  2|  0|4.896|29  $\times10^{-3}$ |0.109   | -->
+<!-- | WBS    |   0|   1| 61| 18| 20|0.053|112 $\times10^{-3}$ |0.044   | -->
+<!-- | WBS2   |   0|   0| 79| 12|  9|0.002|66  $\times10^{-3}$ |0.561   | -->
+<!-- Table: Table 14: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M10). The average MSE, $d_H$ and computational time are also given. -->
+
+<!-- For the signal (M11), since there is no noise, we do not need to repeat our simulations 100 times; the input will be the same each time. All methods, have managed to detect all change-points accurately in this noiseless scenario and therefore, the results are not presented in a table. We proceed, in Table 15 below, with the results for (M12). -->
+
+<!-- | Method |$\hat{N}$|MSE  |Time (s)| -->
+<!-- |--------|---------|-----|--------| -->
+<!-- | ID     |  113.53 |2.113|   0.038| -->
+<!-- | NOT    |  76.75  |5.461|   0.167| -->
+<!-- | TGUH   |  107.71 |2.283|   0.054| -->
+<!-- | WBS    |  83.07  |4.495|   0.030| -->
+<!-- | WBS2   |  112.92 |2.145|   0.117| -->
+<!-- Table: Table 15: The average $\hat{N}$, MSE, and computational times over 100 simulated data sequences from the linear signal (M12). -->
+
+<!-- For the noiseless (M13), we do not present the results in a table because all methods detect the 500 change-points without an error. Table 16 below gives a summary of the results for all signals used in the simulation study. -->
+
+<!-- |  | | |Methods | | | -->
+<!-- |----------|-|-|--------|-|-| -->
+<!-- |          | ID | NOT |TGUH |WBS |WBS2| -->
+<!-- |**Models**| Criterion:|Within| top $10\%$| in terms| of accuracy| -->
+<!-- |**(NC1)**|$\checkmark$|      |$\checkmark$|        |            | -->
+<!-- |**(NC2)**|            |      |$\checkmark$|        |            | -->
+<!-- |**(NC3)**|            |$\checkmark$|$\checkmark$|  |            | -->
+<!-- |**(NC4)**|$\checkmark$|$\checkmark$|$\checkmark$|        |            | -->
+<!-- |**(M1)** |$\checkmark$|            |            |  |$\checkmark$| -->
+<!-- |**(M2)** |$\checkmark$|            |            |  |            | -->
+<!-- |**(M3)** |$\checkmark$|            |            |  |$\checkmark$| -->
+<!-- |**(M4)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$| -->
+<!-- |**(M5)** |$\checkmark$|      |$\checkmark$|        |            | -->
+<!-- |**(M6)** |$\checkmark$|            |            |            |$\checkmark$| -->
+<!-- |**(M7)** |$\checkmark$|      |$\checkmark$|     |            | -->
+<!-- |**(M8)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$| -->
+<!-- |**(M9)** |$\checkmark$|      |$\checkmark$|     |            | -->
+<!-- |**(M10)**|$\checkmark$|      |            |     |$\checkmark$| -->
+<!-- |**(M11)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$| -->
+<!-- |**(M12)**|$\checkmark$|            |$\checkmark$|            |$\checkmark$| -->
+<!-- |**(M13)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$| -->
+<!-- |         | Criterion:|The top| two methods| in terms| of speed| -->
+<!-- |**(NC1)**|            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(NC2)**|            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(NC3)**|            |            |$\checkmark$|$\checkmark$|            | -->
+<!-- |**(NC4)**|            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M1)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M2)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M3)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M4)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M5)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M6)** |            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M7)** |$\checkmark$|$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M8)** |$\checkmark$|$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M9)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M10)**|$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M12)**|$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- Table: Table 16: Summary of the results when the thresholding model selection was employed for all the solution path algorithms. -->
+
+### Thresholding based results
+In this section, we give the simulation results when the *model.thresh* function from the package is employed at each of the solution path methods. The results are given in Tables 9 - 15 below and a summary of the results is given in Table 16. We note that for ID, the results are presented for the *sol.idetect_seq* function (and not for the *sol.idetect*), which is the one that should be used when Isolate-Detect is combined with the thresholding model selection algorithm of the *model.thresh* function.
+
+|  |  | $\hat{N} - N$ | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     | 0 | 1 | 2 | $\geq 3$ | MSE                    | Time (s)|
+| ID     |           | 86| 2 |  9|    3     | 159 $\times 10^{-5}$   |  0.245  |
+| NOT    |           | 82| 13|  2|    3     |  93 $\times 10^{-5}$   |  0.063  |
+| TGUH   | **(NC1)** | 93|  6|  1|    0     |  45 $\times 10^{-5}$   |  0.147  |
+| WBS    |           | 79|  9| 10|    2     |  135 $\times 10^{-5}$  |  0.058  |
+| WBS2   |           | 79| 17|  2|    2     |  91  $\times 10^{-5}$  |  0.934  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     |           | 73|  9| 12|     6    |  76  $\times 10^{-3}$  |  0.002  |
+| NOT    |           | 59| 16| 14|    11    |  86 $\times 10^{-3}$   |  0.003  |
+| TGUH   | **(NC2)** | 81| 16|  1|    2     |  30 $\times 10^{-3}$   |  0.011  |
+| WBS    |           | 48| 20| 15|    17    |  121 $\times 10^{-3}$  |  0.002  |
+| WBS2   |           | 59| 15| 13|    13    |  106 $\times 10^{-3}$  |  0.017  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     |           | 55| 29| 14|    2     |  390 $\times 10^{-3}$  |  0.002  |
+| NOT    |           | 67| 24|  1|    8     |  317 $\times 10^{-3}$  |  0.003  |
+| TGUH   | **(NC3)** | 64| 25|  3|    8     |  333 $\times 10^{-3}$  |  0.002  |
+| WBS    |           | 50| 34|  8|    8     |  410 $\times 10^{-3}$  |  0.001  |
+| WBS2   |           | 50| 34|  8|    8     |  410 $\times 10^{-3}$  |  0.001  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     |           | 89|  2|  8|    1     |  37 $\times 10^{-5}$   |  1.614  |
+| NOT    |           | 89|  8|  2|    1     |  21 $\times 10^{-5}$   |  0.119  |
+| TGUH   | **(NC4)** | 94|  6|  0|    0     |  12 $\times 10^{-5}$   |  0.351  |
+| WBS    |           | 89|  7|  4|    0     |  22 $\times 10^{-5}$   |  0.112  |
+| WBS2   |           | 88| 10|  2|    0     |  15 $\times 10^{-5}$   |  2.911  |
+Table: Table 9: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1)-(NC4). Also the average MSE and computational times for each method are given.
+
+
+|  |  | | | |$\hat{N} - N$ | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)|
+| ID     |           |       0 |     2|  56|40 |2  |  0|     0  |2.807              |19 $\times10^{-3}$  | 0.025  |
+| NOT    |           |       0 |    15|  62|22 |1  |  0|     0  |3.217              |28 $\times10^{-3}$  | 0.063  |
+| TGUH   | **(M1)**  |       1 |    14|  64|19 |2  |  0|     0  |3.680              |23 $\times10^{-3}$  | 0.109  |
+| WBS    |           |       0 |     3|  60|34 |3  |  0|     0  |2.812              |27 $\times10^{-3}$  | 0.049  |
+| WBS2   |           |       0 |     3|  49|38 |6  |  4|     0  |2.914              |26 $\times10^{-3}$  | 0.582  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     |           |       0 |     0|   2|87 |8  |  3|     0  |45 $\times 10^{-4}$|28 $\times 10^{-3}$ | 0.008  |
+| NOT    |           |       0 |     2|  21|64 |11 |  1|     1  |60 $\times 10^{-4}$|54 $\times 10^{-3}$ | 0.040  |
+| TGUH   | **(M2)**  |       0 |     1|  61|36 |2  |  0|     0  |96 $\times 10^{-4}$|32 $\times 10^{-3}$ | 0.056  |
+| WBS    |           |       0 |     0|   2|75 |17 |  4|     2  |47 $\times 10^{-4}$|50 $\times 10^{-3}$ | 0.029  |
+| WBS2   |           |       0 |     0|   4|84 |8  |  4|     0  |45 $\times 10^{-4}$|29 $\times 10^{-3}$ | 0.150  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     |           |       1 |    20|  42|31 |6  | 0 |     0  |1.617              |120 $\times 10^{-3}$|  0.009 |
+| NOT    |           |       5 |    20|  44|26 |5  | 0 |     0  |1.909              |123 $\times 10^{-3}$|  0.042 |
+| TGUH   | **(M3)**  |       47|    33|  17|3  |0  | 0 |     0  |2.706              |228 $\times 10^{-3}$|  0.061 |
+| WBS    |           |       0 |    10|  51|27 |10 |  2|     0  |1.649              |102 $\times 10^{-3}$|  0.031 |
+| WBS2   |           |       2 |    17|  41|27 |12 |  1|     0  |1.548              |119 $\times 10^{-3}$|  0.168 |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     |           |       10|     7|  17|63 |2  | 1 |     0  |66 $\times10^{-3}$ |47 $\times 10^{-3}$ |  0.006 |
+| NOT    |           |       5 |    14|  26|48 |6  | 1 |     0  |75 $\times10^{-3}$ |49 $\times 10^{-3}$ |  0.014 |
+| TGUH   | **(M4)**  |       84|    10|   3| 3 |0  | 0 |     0  |168 $\times10^{-3}$|129 $\times 10^{-3}$|  0.025 |
+| WBS    |           |       3 |     4|  21|65 |6  | 1 |     0  |60 $\times10^{-3}$ |37 $\times 10^{-3}$ |  0.005 |
+| WBS2   |           |       5 |     4|  21|63 |6  | 1 |     0  |62 $\times10^{-3}$ |39 $\times 10^{-3}$ |  0.038 |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     |           |       0 |     0|   0|97 |2  | 1 |     0  |22 $\times10^{-3}$ |9 $\times 10^{-3}$  |  0.006 |
+| NOT    |           |       0 |     0|  34|59 |6  | 0 |     1  |32 $\times10^{-3}$ |28 $\times 10^{-3}$ |  0.054 |
+| TGUH   | **(M5)**  |       0 |     0|   0|99 |1  | 0 |     0  |23 $\times10^{-3}$ |9 $\times 10^{-3}$  |  0.029 |
+| WBS    |           |       0 |     0|   0|90 |7  | 2 |     1  |25 $\times10^{-3}$ |11 $\times 10^{-3}$ |  0.025 |
+| WBS2   |           |       0 |     0|   0|84 |15 | 1 |     0  |25 $\times10^{-3}$ |13 $\times 10^{-3}$ |  0.042 |
+Table: Table 10: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M1)-(M5). The average MSE, $d_H$ and computational time are also given.
+
+
+|  | | |$\hat{N} - N$ | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$\leq -150$|$(-150,-50]$|$(-50,-10)$|$[-10,10]$|$(10,50]$|$>50$| MSE |$d_H$              |Time (s)|
+| ID     |       0   |           0|         24|       76 |      0  |   0 |0.124|58 $\times10^{-4}$ |0.195   |
+| NOT    |       100|            0|          0|        0 |      0  |   0 |0.504|240 $\times10^{-4}$|0.123   |
+| TGUH   |       4   |          96|          0|        0 |      0  |   0 |0.480|166 $\times10^{-4}$|0.361   |
+| WBS    |      66   |          34|          0|        0 |      0  |   0 |0.486|230 $\times10^{-4}$|0.114   |
+| WBS2   |       0   |           0|         34|       66 |      0  |   0 |0.131|52 $\times10^{-4}$ |2.810   |
+
+Table: Table 11: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M6). The average MSE, $d_H$ and computational time are also given.
+
+|  | | | |$\hat{N} - N$ | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model  |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$              |Time (s)|
+| ID     |        |   0|   1| 85|  8| 6 |0.203|54 $\times10^{-3}$ |0.003   |
+| NOT    |        |   0|  37| 44| 12| 7 |0.408|166 $\times10^{-3}$|0.002   |
+| TGUH   |**(M7)**|   0|   2| 87|  9| 2 |0.247|62 $\times10^{-3}$ |0.009   |
+| WBS    |        |   0|   0| 71| 18| 11|0.215|75 $\times10^{-3}$ |0.001   |
+| WBS2   |        |   0|   0| 71| 18| 11|0.212|74 $\times10^{-3}$ |0.014   |
+|        |        |    |    |   |   |   |     |                   |        |
+|        |        |    |    |   |   |   |     |                   |        |
+| ID     |        |  22|  11| 61|  4| 2 |1.082|231 $\times10^{-3}$|0.002   |
+| NOT    |        |  24|  41| 27|  6| 2 |1.509|354 $\times10^{-3}$|0.001   |
+| TGUH   |**(M8)**|  27|  24| 43|  4| 2 |1.318|301 $\times10^{-3}$|0.003   |
+| WBS    |        |  16|  12| 64|  6| 2 |1.026|199 $\times10^{-3}$|0.001   |
+| WBS2   |        |  16|  12| 64|  6| 2 |1.026|199 $\times10^{-3}$|0.002   |
+Table: Table 12: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M7) and (M8). The average MSE, $d_H$ and computational time are also given.
+
+
+|  | | | |$\hat{N} - N$ | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$             |Time (s)|
+| ID     |       0 |     0|   0|90 |2  |  8|     0  |29 $\times 10^{-6}$|10 $\times10^{-3}$ | 0.038  |
+| NOT    |       0 |     0|   0|86 |10 |  4|     0  |25 $\times 10^{-6}$|15 $\times10^{-3}$ | 0.064  |
+| TGUH   |       0 |     0|   0|94 |6  |  0|     0  |21 $\times 10^{-6}$|7  $\times10^{-3}$ | 0.125  |
+| WBS    |       0 |     0|   0|76 |15 |  9|     0  |31 $\times 10^{-6}$|26 $\times10^{-3}$ | 0.048  |
+| WBS2   |       0 |     0|   0|80 |16 |  4|     0  |26 $\times 10^{-6}$|15 $\times10^{-3}$ | 0.706  |
+Table: Table 13: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M9). The average MSE, $d_H$ and computational time are also given.
+
+| | | |$\hat{N} - N$ | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$               |Time (s)|
+| ID     |   0|   0| 91| 4 |  5|0.002|24  $\times 10^{-3}$|0.038   |
+| NOT    |   0|   1| 86| 10|  3|0.151|44 $\times10^{-3}$  |0.052   |
+| TGUH   |   0|  95|  4|  1|  0|4.996|17  $\times10^{-3}$ |0.110   |
+| WBS    |   0|   1| 79| 13|  7|0.052|58  $\times10^{-3}$ |0.045   |
+| WBS2   |   0|   0| 88|  7|  5|0.002|38  $\times10^{-3}$ |0.569   |
+Table: Table 14: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M10). The average MSE, $d_H$ and computational time are also given.
+
+For the signal (M11), since there is no noise, we do not need to repeat our simulations 100 times; the input will be the same each time. All methods, have managed to detect all change-points accurately in this noiseless scenario and therefore, the results are not presented in a table. We proceed, in Table 15 below, with the results for (M12).
+
+| Method |$\hat{N}$|MSE  |Time (s)|
+|-------------|-------------|-------------|-------------|
+| ID     |  111.52 |2.175|   0.036|
+| NOT    |  75.16  |5.613|   0.169|
+| TGUH   |  104.90 |2.388|   0.053|
+| WBS    |  81.23  |4.642|   0.029|
+| WBS2   |  110.10 |2.242|   0.115|
+Table: Table 15: The average $\hat{N}$, MSE, and computational times over 100 simulated data sequences from the linear signal (M12).
+
+For the noiseless (M13), we do not present the results in a table because all methods detect the 500 change-points without an error. Table 16 below gives a summary of the results for all signals used in the simulation study.
+
+|  | | |Methods | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|
+|          | ID | NOT |TGUH |WBS |WBS2|
+|**Models**| Criterion:|Within| top $10\%$| in terms| of accuracy|
+|**(NC1)**|$\checkmark$|      |$\checkmark$|        |            |
+|**(NC2)**|$\checkmark$|      |$\checkmark$|        |            |
+|**(NC3)**|            |$\checkmark$|$\checkmark$|  |            |
+|**(NC4)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(M1)** |$\checkmark$|            |            |  |$\checkmark$|
+|**(M2)** |$\checkmark$|            |            |  |$\checkmark$|
+|**(M3)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$|
+|**(M4)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$|
+|**(M5)** |$\checkmark$|      |$\checkmark$|$\checkmark$|            |
+|**(M6)** |$\checkmark$|            |            |            |            |
+|**(M7)** |$\checkmark$|      |$\checkmark$|     |            |
+|**(M8)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$|
+|**(M9)** |$\checkmark$|$\checkmark$|$\checkmark$|     |            |
+|**(M10)**|$\checkmark$|$\checkmark$|            |     |$\checkmark$|
+|**(M11)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(M12)**|$\checkmark$|            |$\checkmark$|            |$\checkmark$|
+|**(M13)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|         | Criterion:|The top| two methods| in terms| of speed|
+|**(NC1)**|            |$\checkmark$|            |$\checkmark$|            |
+|**(NC2)**|$\checkmark$|            |            |$\checkmark$|            |
+|**(NC3)**|            |            |            |$\checkmark$|$\checkmark$|
+|**(NC4)**|            |$\checkmark$|            |$\checkmark$|            |
+|**(M1)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M2)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M3)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M4)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M5)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M6)** |            |$\checkmark$|            |$\checkmark$|            |
+|**(M7)** |            |$\checkmark$|            |$\checkmark$|            |
+|**(M8)** |            |$\checkmark$|            |$\checkmark$|            |
+|**(M9)** |$\checkmark$|            |            |$\checkmark$|            |
+|**(M10)**|$\checkmark$|            |            |$\checkmark$|            |
+|**(M12)**|$\checkmark$|            |            |$\checkmark$|            |
+Table: Table 16: Summary of the results when the thresholding model selection was employed for all the solution path algorithms.
+
+<!-- ### Thresholding based results with constant $C = 1.2$ -->
+<!-- In this section, we give the simulation results when the *model.thresh* function from the package is employed at each of the solution path methods. The results are given in Tables 9 - 15 below and a summary of the results is given in Table 16. We note that for ID, the results are presented for the *sol.idetect_seq* function (and not for the *sol.idetect*), which is the one that should be used when Isolate-Detect is combined with the thresholding model selection algorithm of the *model.thresh* function. -->
+
+<!-- |  |  | $\hat{N} - N$ | | | -->
+<!-- |--|--|---------------|-|-|-|-|-| -->
+<!-- | Method | Model     | 0 | 1 | 2 | $\geq 3$ | MSE                    | Time (s)| -->
+<!-- | ID     |           | 92| 3 |  4|    1     | 101 $\times 10^{-5}$   |  0.247  | -->
+<!-- | NOT    |           | 89| 10|  0|    1     |  62 $\times 10^{-5}$   |  0.054  | -->
+<!-- | TGUH   | **(NC1)** | 96|  4|  0|    0     |  44 $\times 10^{-5}$   |  0.143  | -->
+<!-- | WBS    |           | 87|  9|  2|    2     |  99 $\times 10^{-5}$   |  0.048  | -->
+<!-- | WBS2   |           | 90|  9|  0|    1     |  59  $\times 10^{-5}$  |  0.881  | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- | ID     |           | 77| 11| 11|    1     |  62  $\times 10^{-3}$  |  0.001  | -->
+<!-- | NOT    |           | 67| 20|  5|    8     |  67 $\times 10^{-3}$   |  0.002  | -->
+<!-- | TGUH   | **(NC2)** | 86| 13|  1|    0     |  28 $\times 10^{-3}$   |  0.007  | -->
+<!-- | WBS    |           | 55| 20| 15|    10    |  95 $\times 10^{-3}$   |  0.002  | -->
+<!-- | WBS2   |           | 66| 12| 14|    8     |  83 $\times 10^{-3}$   |  0.012  | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- | ID     |           | 57| 28| 13|    2     |  382 $\times 10^{-3}$  |  0.001  | -->
+<!-- | NOT    |           | 69| 22|  1|    8     |  307 $\times 10^{-3}$  |  0.001  | -->
+<!-- | TGUH   | **(NC3)** | 64| 25|  3|    8     |  333 $\times 10^{-3}$  |  0.002  | -->
+<!-- | WBS    |           | 52| 32|  8|    8     |  406 $\times 10^{-3}$  |  0.001  | -->
+<!-- | WBS2   |           | 52| 32|  8|    8     |  406 $\times 10^{-3}$  |  0.001  | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- |        |           |   |   |   |          |                        |         | -->
+<!-- | ID     |           | 93|  3|  4|    0     |  22 $\times 10^{-5}$   |  1.693  | -->
+<!-- | NOT    |           | 92|  6|  2|    0     |  18 $\times 10^{-5}$   |  0.117  | -->
+<!-- | TGUH   | **(NC4)** | 95|  5|  0|    0     |  11 $\times 10^{-5}$   |  0.360  | -->
+<!-- | WBS    |           | 93|  5|  2|    0     |  17 $\times 10^{-5}$   |  0.111  | -->
+<!-- | WBS2   |           | 91|  8|  1|    0     |  15 $\times 10^{-5}$   |  2.965  | -->
+<!-- Table: Table 9: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1)-(NC4). Also the average MSE and computational times for each method are given. -->
+
+
+<!-- |  |  | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|--|-|-|-|---------------|-|-|-|-|-|-| -->
+<!-- | Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)| -->
+<!-- | ID     |           |       0 |     5|  65|30 |0  |  0|     0  |2.806              |19 $\times10^{-3}$  | 0.023  | -->
+<!-- | NOT    |           |       1 |    25|  60|14 |0  |  0|     0  |3.326              |24 $\times10^{-3}$  | 0.059  | -->
+<!-- | TGUH   | **(M1)**  |       2 |    24|  62|11 |1  |  0|     0  |3.884              |24 $\times10^{-3}$  | 0.109  | -->
+<!-- | WBS    |           |       0 |     7|  71|21 |1  |  0|     0  |2.905              |21 $\times10^{-3}$  | 0.045  | -->
+<!-- | WBS2   |           |       0 |     6|  61|30 |2  |  1|     0  |2.945              |23 $\times10^{-3}$  | 0.609  | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       0 |     0|   3|92 |4  |  1|     0  |42 $\times 10^{-4}$|21 $\times 10^{-3}$ | 0.008  | -->
+<!-- | NOT    |           |       0 |     2|  34|59 |5  |  0|     0  |66 $\times 10^{-4}$|46 $\times 10^{-3}$ | 0.034  | -->
+<!-- | TGUH   | **(M2)**  |       0 |     4|  65|30 |1  |  0|     0  |103$\times 10^{-4}$|35 $\times 10^{-3}$ | 0.049  | -->
+<!-- | WBS    |           |       0 |     0|   4|85 |8  |  3|     0  |46 $\times 10^{-4}$|31 $\times 10^{-3}$ | 0.026  | -->
+<!-- | WBS2   |           |       0 |     1|   5|88 |3  |  3|     0  |46 $\times 10^{-4}$|22 $\times 10^{-3}$ | 0.139  | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       1 |    24|  46|26 |3  | 0 |     0  |1.617              |131 $\times 10^{-3}$|  0.009 | -->
+<!-- | NOT    |           |       8 |    31|  35|24 |2  | 0 |     0  |1.953              |143 $\times 10^{-3}$|  0.038 | -->
+<!-- | TGUH   | **(M3)**  |       51|    35|  13|1  |0  | 0 |     0  |2.880              |243 $\times 10^{-3}$|  0.054 | -->
+<!-- | WBS    |           |       3 |    21|  45|27 |3  |  1|     0  |1.692              |121 $\times 10^{-3}$|  0.027 | -->
+<!-- | WBS2   |           |       5 |    20|  49|22 |4  |  0|     0  |1.559              |140 $\times 10^{-3}$|  0.166 | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       13|    13|  14|57 |3  | 0 |     0  |72 $\times10^{-3}$ |56 $\times 10^{-3}$ |  0.005 | -->
+<!-- | NOT    |           |       12|    15|  24|43 |5  | 1 |     0  |78 $\times10^{-3}$ |54 $\times 10^{-3}$ |  0.011 | -->
+<!-- | TGUH   | **(M4)**  |       89|     7|   1| 3 |0  | 0 |     0  |178 $\times10^{-3}$|156 $\times 10^{-3}$|  0.022 | -->
+<!-- | WBS    |           |       5 |    10|  21|61 |3  | 0 |     0  |64 $\times10^{-3}$ |40 $\times 10^{-3}$ |  0.005 | -->
+<!-- | WBS2   |           |      11 |     9|  19|58 |3  | 0 |     0  |70 $\times10^{-3}$ |47 $\times 10^{-3}$ |  0.032 | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- |        |           |         |      |    |   |   |   |        |                   |                    |        | -->
+<!-- | ID     |           |       0 |     0|   0|98 |2  | 0 |     0  |22 $\times10^{-3}$ |9 $\times 10^{-3}$  |  0.004 | -->
+<!-- | NOT    |           |       0 |     0|  36|58 |5  | 1 |     0  |32 $\times10^{-3}$ |29 $\times 10^{-3}$ |  0.046 | -->
+<!-- | TGUH   | **(M5)**  |       0 |     0|   1|98 |1  | 0 |     0  |23 $\times10^{-3}$ |10 $\times 10^{-3}$ |  0.024 | -->
+<!-- | WBS    |           |       0 |     0|   2|89 |7  | 2 |     0  |26 $\times10^{-3}$ |12 $\times 10^{-3}$ |  0.021 | -->
+<!-- | WBS2   |           |       0 |     0|   2|85 |12 | 1 |     0  |26 $\times10^{-3}$ |13 $\times 10^{-3}$ |  0.033 | -->
+<!-- Table: Table 10: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M1)-(M5). The average MSE, $d_H$ and computational time are also given. -->
+
+
+<!-- |  | | |$\hat{N} - N$ | | | | -->
+<!-- |--|-|-|---------------|-|-|-|-|-|-| -->
+<!-- | Method |$\leq -150$|$(-150,-50]$|$(-50,-10)$|$[-10,10]$|$(10,50]$|$>50$| MSE |$d_H$              |Time (s)| -->
+<!-- | ID     |       0   |           0|         80|       20 |      0  |   0 |0.141|57 $\times10^{-4}$ |0.201   | -->
+<!-- | NOT    |       100 |           0|          0|        0 |      0  |   0 |0.514|271 $\times10^{-4}$|0.125   | -->
+<!-- | TGUH   |       61  |          39|          0|        0 |      0  |   0 |0.504|233 $\times10^{-4}$|0.376   | -->
+<!-- | WBS    |      99   |           1|          0|        0 |      0  |   0 |0.498|272 $\times10^{-4}$|0.115   | -->
+<!-- | WBS2   |       0   |           0|         87|       13 |      0  |   0 |0.151|64 $\times10^{-4}$ |3.052   | -->
+
+<!-- Table: Table 11: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M6). The average MSE, $d_H$ and computational time are also given. -->
+
+<!-- |  | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|--|-|-|---------------|-|-|-|-|-| -->
+<!-- | Method | Model  |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$              |Time (s)| -->
+<!-- | ID     |        |   0|  2 | 86|  8| 4 |0.197|48 $\times10^{-3}$ |0.001   | -->
+<!-- | NOT    |        |   0|  43| 43|  9| 5 |0.431|169 $\times10^{-3}$|0.003   | -->
+<!-- | TGUH   |**(M7)**|   1|   6| 83|  9| 1 |0.261|70 $\times10^{-3}$ |0.009   | -->
+<!-- | WBS    |        |   0|   0| 79| 13| 8 |0.203|64 $\times10^{-3}$ |0.003   | -->
+<!-- | WBS2   |        |   0|   1| 80| 11| 8 |0.205|62 $\times10^{-3}$ |0.013   | -->
+<!-- |        |        |    |    |   |   |   |     |                   |        | -->
+<!-- |        |        |    |    |   |   |   |     |                   |        | -->
+<!-- | ID     |        |  24|  15| 56|  4| 1 |1.168|257 $\times10^{-3}$|0.002   | -->
+<!-- | NOT    |        |  25|  45| 25|  4| 1 |1.587|373 $\times10^{-3}$|0.001   | -->
+<!-- | TGUH   |**(M8)**|  32|  22| 42|  3| 1 |1.383|328 $\times10^{-3}$|0.002   | -->
+<!-- | WBS    |        |  19|  15| 60|  4| 2 |1.095|225 $\times10^{-3}$|0.001   | -->
+<!-- | WBS2   |        |  19|  15| 60|  4| 2 |1.095|225 $\times10^{-3}$|0.002   | -->
+<!-- Table: Table 12: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M7) and (M8). The average MSE, $d_H$ and computational time are also given. -->
+
+
+<!-- |  | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|-|-|-|---------------|-|-|-|-|-|-| -->
+<!-- | Method |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$             |Time (s)| -->
+<!-- | ID     |       0 |     0|   0|96 |0  |  4|     0  |25 $\times 10^{-6}$|5 $\times10^{-3}$  | 0.043  | -->
+<!-- | NOT    |       0 |     0|   0|93 |6  |  1|     0  |22 $\times 10^{-6}$|8 $\times10^{-3}$  | 0.074  | -->
+<!-- | TGUH   |       0 |     0|   0|98 |2  |  0|     0  |21 $\times 10^{-6}$|2  $\times10^{-3}$ | 0.152  | -->
+<!-- | WBS    |       0 |     0|   0|92 |6  |  2|     0  |24 $\times 10^{-6}$|8 $\times10^{-3}$  | 0.053  | -->
+<!-- | WBS2   |       0 |     0|   0|92 |6  |  2|     0  |24 $\times 10^{-6}$|7 $\times10^{-3}$  | 0.914  | -->
+<!-- Table: Table 13: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M9). The average MSE, $d_H$ and computational time are also given. -->
+
+<!-- | | | |$\hat{N} - N$ | | | | -->
+<!-- |--|-|-|---------------|-|-|-|-|-| -->
+<!-- | Method |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$               |Time (s)| -->
+<!-- | ID     |   0|   0| 95| 3 |  2|0.002|14  $\times 10^{-3}$|0.059   | -->
+<!-- | NOT    |   0|   1| 92| 6 |  1|0.101|27 $\times10^{-3}$  |0.078   | -->
+<!-- | TGUH   |   0|  97|  2|  1|  0|4.996|11  $\times10^{-3}$ |0.183   | -->
+<!-- | WBS    |   0|   1| 84| 12|  3|0.052|44  $\times10^{-3}$ |0.067   | -->
+<!-- | WBS2   |   0|   0| 91|  7|  2|0.002|24  $\times10^{-3}$ |0.975   | -->
+<!-- Table: Table 14: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M10). The average MSE, $d_H$ and computational time are also given. -->
+
+<!-- For the signal (M11), since there is no noise, we do not need to repeat our simulations 100 times; the input will be the same each time. All methods, have managed to detect all change-points accurately in this noiseless scenario and therefore, the results are not presented in a table. We proceed, in Table 15 below, with the results for (M12). -->
+
+<!-- | Method |$\hat{N}$|MSE  |Time (s)| -->
+<!-- |--------|---------|-----|--------| -->
+<!-- | ID     |  109.77 |2.232|   0.055| -->
+<!-- | NOT    |  73.78  |5.800|   0.268| -->
+<!-- | TGUH   |  102.39 |2.494|   0.086| -->
+<!-- | WBS    |  79.56  |4.783|   0.043| -->
+<!-- | WBS2   |  107.40 |2.345|   0.193| -->
+<!-- Table: Table 15: The average $\hat{N}$, MSE, and computational times over 100 simulated data sequences from the linear signal (M12). -->
+
+<!-- For the noiseless (M13), we do not present the results in a table because all methods detect the 500 change-points without an error. Table 16 below gives a summary of the results for all signals used in the simulation study. -->
+
+<!-- |  | | |Methods | | | -->
+<!-- |----------|-|-|--------|-|-| -->
+<!-- |          | ID | NOT |TGUH |WBS |WBS2| -->
+<!-- |**Models**| Criterion:|Within| top $10\%$| in terms| of accuracy| -->
+<!-- |**(NC1)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$| -->
+<!-- |**(NC2)**|$\checkmark$|      |$\checkmark$|        |            | -->
+<!-- |**(NC3)**|            |$\checkmark$|$\checkmark$|  |            | -->
+<!-- |**(NC4)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$| -->
+<!-- |**(M1)** |$\checkmark$|            |            |  |$\checkmark$| -->
+<!-- |**(M2)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$| -->
+<!-- |**(M3)** |$\checkmark$|$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M4)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$| -->
+<!-- |**(M5)** |$\checkmark$|      |$\checkmark$|$\checkmark$|            | -->
+<!-- |**(M6)** |$\checkmark$|            |            |            |            | -->
+<!-- |**(M7)** |$\checkmark$|      |$\checkmark$|$\checkmark$|$\checkmark$| -->
+<!-- |**(M8)** |$\checkmark$|            |            |$\checkmark$|$\checkmark$| -->
+<!-- |**(M9)** |$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$| -->
+<!-- |**(M10)**|$\checkmark$|$\checkmark$|            |     |$\checkmark$| -->
+<!-- |**(M11)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$| -->
+<!-- |**(M12)**|$\checkmark$|            |$\checkmark$|            |$\checkmark$| -->
+<!-- |**(M13)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$| -->
+<!-- |         | Criterion:|The top| two methods| in terms| of speed| -->
+<!-- |**(NC1)**|            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(NC2)**|            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(NC3)**|$\checkmark$|$\checkmark$|            |$\checkmark$|$\checkmark$| -->
+<!-- |**(NC4)**|            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M1)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M2)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M3)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M4)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M5)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M6)** |            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M7)** |$\checkmark$|$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M8)** |            |$\checkmark$|            |$\checkmark$|            | -->
+<!-- |**(M9)** |$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M10)**|$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- |**(M12)**|$\checkmark$|            |            |$\checkmark$|            | -->
+<!-- Table: Table 16: Summary of the results when the thresholding model selection was employed for all the solution path algorithms. -->
+
+### SDLL based results
+In this section, we give the simulation results when the *model.sdll* function from the package is employed at each of the solution path methods. The results are given in Tables 17 - 23 below and a summary of the results is given in Table 24. We note that for ID, the results are presented for the *sol.idetect* function (and not for the *sol.idetect_seq*), which is the one that should be used when Isolate-Detect is combined with the SDLL model selection algorithm of the *model.sdll* function. In addition, we do not present any results when the NOT solution path is employed due to the fact that it should not be used in combination with the *model.sdll* function.
+
+|  |  | $\hat{N} - N$ | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     | 0 | 1 |  2| $\geq 3$ | MSE                    | Time (s)|
+| ID     |           | 88| 9 |  1|    2     |  73  $\times 10^{-5}$  |  0.11   |
+| TGUH   | **(NC1)** | 93| 5 |  1|    1     |  45 $\times 10^{-5}$   |  0.20   |
+| WBS    |           | 79| 6 |  7|    8     |  211 $\times 10^{-5}$  |  0.06   |
+| WBS2   |           | 79| 12|  3|    6     |  149 $\times 10^{-5}$  |  1.13   |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     |           | 90| 1 | 1 |    8     |  62 $\times 10^{-3}$   |  0.003  |
+| TGUH   | **(NC2)** | 95| 3 | 0 |    2     |  23 $\times 10^{-3}$   |  0.012  |
+| WBS    |           | 72| 7 | 5 |    16    |  123 $\times 10^{-3}$  |  0.001  |
+| WBS2   |           | 76| 5 | 4 |    15    |  118 $\times 10^{-3}$  |  0.017  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     |           | 75| 13| 11|    1     |  292 $\times 10^{-3}$  |  0.002  |
+| TGUH   | **(NC3)** | 74| 17|  2|    7     |  292 $\times 10^{-3}$  |  0.001  |
+| WBS    |           | 70| 15|  8|    7     |  320 $\times 10^{-3}$  |  0.002  |
+| WBS2   |           | 70| 15|  8|    7     |  320 $\times 10^{-3}$  |  0.001  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     |           | 94| 4 | 1 |    1     |  15  $\times 10^{-5}$  |  0.64   |
+| TGUH   | **(NC4)** | 93| 6 | 1 |    0     |  12 $\times 10^{-5}$   |  0.43   |
+| WBS    |           | 85| 4 | 7 |    4     |  43  $\times 10^{-5}$  |  0.12   |
+| WBS2   |           | 84| 11| 3 |    3     |  20  $\times 10^{-5}$  |  3.39   |
+Table: Table 17: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1)-(NC4). Also the average MSE and computational times for each method are given.
+
+
+|  |  | | | |$\hat{N} - N$ | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)|
+| ID     |           |       1 |    15|  55|24 |3  | 1 |     1  |3.304              |245 $\times10^{-4}$ | 0.03   |
+| TGUH   | **(M1)**  |       2 |    14|  54|24 |6  | 0 |     0  |3.662              |245 $\times10^{-4}$ | 0.15   |
+| WBS    |           |       0 |     4|  63|26 |5  | 0 |     2  |2.868              |271 $\times10^{-4}$ | 0.05   |
+| WBS2   |           |       0 |     5|  54|32 |3  | 3 |     3  |2.975              |246 $\times10^{-4}$ | 0.76   |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     |           |       0 |     6|  21|69 |3  | 0 |     1  |66 $\times 10^{-4}$|26 $\times 10^{-3}$ | 0.009  |
+| TGUH   | **(M2)**  |       0 |     4|  59|34 |1  | 2 |     0  |99 $\times 10^{-4}$|34 $\times 10^{-3}$ | 0.057  |
+| WBS    |           |       0 |     0|   2|87 |6  | 3 |     2  |46 $\times 10^{-4}$|32 $\times 10^{-3}$ | 0.033  |
+| WBS2   |           |       0 |     1|   4|89 |2  | 2 |     2  |45 $\times 10^{-4}$|23  $\times 10^{-3}$| 0.168  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     |           |      28 |    30|  18|16 |4  | 1 |     3  |2.115              |192 $\times 10^{-3}$|  0.013 |
+| TGUH   | **(M3)**  |      32 |    26|  20|10 |8  | 2 |     2  |2.352              |195 $\times 10^{-3}$|  0.062 |
+| WBS    |           |       3 |    16|  40|28 |6  | 3 |     4  |1.700              |110 $\times 10^{-3}$|  0.034 |
+| WBS2   |           |       5 |    17|  38|27 |7  | 2 |     4  |1.600              |131 $\times 10^{-3}$|  0.191 |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     |           |       3 |     3|   5|37 |18 |15 |    19  |64 $\times10^{-3}$ |50 $\times 10^{-3}$ |  0.008 |
+| TGUH   | **(M4)**  |       27|    11|  16|20 |8  | 5 |    13  |105 $\times10^{-3}$|76 $\times 10^{-3}$ |  0.033 |
+| WBS    |           |       1 |     2|  10|75 |8  | 0 |     4  |55 $\times10^{-3}$ |26 $\times 10^{-3}$ |  0.005 |
+| WBS2   |           |       2 |     2|   5|70 |15 | 1 |     5  |55 $\times10^{-3}$ |26 $\times 10^{-3}$ |  0.044 |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     |           |       0 |     0|   0|94 |6  | 0 |     0  |22 $\times10^{-3}$ |10 $\times 10^{-3}$ |  0.008 |
+| TGUH   | **(M5)**  |       0 |     0|   0|97 |3  | 0 |     0  |9  $\times10^{-3}$ |13 $\times 10^{-3}$ |  0.030 |
+| WBS    |           |       0 |     1|   0|87 |10 | 0 |     2  |26 $\times10^{-3}$ |12 $\times 10^{-3}$ |  0.031 |
+| WBS2   |           |       0 |     0|   1|82 |14 | 2 |     1  |25 $\times10^{-3}$ |12 $\times 10^{-3}$ |  0.044 |
+Table: Table 18: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M1)-(M5). The average MSE, $d_H$ and computational time are also given.
+
+
+|  | | |$\hat{N} - N$ | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$\leq -150$|$(-150,-50]$|$(-50,-10)$|$[-10,10]$|$(10,50]$|$>50$| MSE |$d_H$              |Time (s)|
+| ID     |       0   |           2|          1|       32 |     54  |  11 |0.119|23 $\times10^{-4}$ |0.50    |
+| TGUH   |       0   |          32|         54|       12 |      2  |   0 |0.274|52 $\times10^{-4}$ |0.44    |
+| WBS    |       0   |         100|          0|        0 |      0  |   0 |0.409|126 $\times10^{-4}$|0.12    |
+| WBS2   |       0   |           0|          0|       98 |      2  |   0 |0.110|36 $\times10^{-4}$ |3.46    |
+
+Table: Table 19: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M6). The average MSE, $d_H$ and computational time are also given.
+
+|  | | | |$\hat{N} - N$ | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model  |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$              |Time (s)|
+| ID     |        |   1|   2| 80|  6| 11|0.240|64 $\times10^{-3}$ |0.005   |
+| TGUH   |**(M7)**|   3|   3| 86|  5|  3|0.264|70 $\times10^{-3}$ |0.018   |
+| WBS    |        |   0|   4| 83|  6|  7|0.228|60 $\times10^{-3}$ |0.005   |
+| WBS2   |        |   0|   5| 80|  7|  8|0.233|64 $\times10^{-3}$ |0.023   |
+|        |        |    |    |   |   |   |     |                   |        |
+|        |        |    |    |   |   |   |     |                   |        |
+| ID     |        |  40|   2| 43| 14| 1 |1.296|323 $\times10^{-3}$|0.001   |
+| TGUH   |**(M8)**|  44|   5| 39|  8| 4 |1.430|358 $\times10^{-3}$|0.002   |
+| WBS    |        |  31|   4| 57|  5| 3 |1.175|267 $\times10^{-3}$|0.003   |
+| WBS2   |        |  31|   4| 57|  5| 3 |1.175|267 $\times10^{-3}$|0.002   |
+Table: Table 20: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M7) and (M8). The average MSE, $d_H$ and computational time are also given.
+
+
+|  | | | |$\hat{N} - N$ | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$             |Time (s)|
+| ID     |       0 |     0|   0|47 |39 |  9|     5  |31 $\times 10^{-6}$|23 $\times10^{-3}$ | 0.039  |
+| TGUH   |       0 |     0|   0|94 |4  |  2|     0  |21 $\times 10^{-6}$|7  $\times10^{-3}$ | 0.142  |
+| WBS    |       0 |     0|   0|80 |8  |  4|     4  |34 $\times 10^{-6}$|23 $\times10^{-3}$ | 0.050  |
+| WBS2   |       0 |     0|   0|83 |9  |  6|     2  |29 $\times 10^{-6}$|15 $\times10^{-3}$ | 0.801  |
+Table: Table 21: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M9). The average MSE, $d_H$ and computational time are also given.
+
+| | | |$\hat{N} - N$ | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$               |Time (s)|
+| ID     |   0|   0| 56|39 |  5|0.002|55 $\times 10^{-3}$ |0.037   |
+| TGUH   |   0|  96|  2|  1|  1|4.996|16 $\times10^{-3}$  |0.128   |
+| WBS    |   0|   1| 81|  9|  9|0.053|55 $\times10^{-3}$  |0.049   |
+| WBS2   |   0|   0| 90|  4|  6|0.002|31 $\times10^{-3}$  |0.672   |
+Table: Table 22: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M10). The average MSE, $d_H$ and computational time are also given.
+
+For the signal (M11), since there is no noise, we do not need to repeat our simulations 100 times; the input will be the same each time. All methods, have managed to detect all change-points accurately in this noiseless scenario and therefore, the results are not presented in a table. We proceed, in Table 23 below, with the results for (M12).
+
+| Method |$\hat{N}$|MSE  |Time (s)|
+|-------------|-------------|-------------|-------------|
+| ID     |  123.09 |1.862|   0.075|
+| TGUH   |  124.55 |1.899|   0.062|
+| WBS    |  101.24 |3.562|   0.031|
+| WBS2   |  122.53 |1.945|   0.136|
+Table: Table 23: The average $\hat{N}$, MSE, and computational times over 100 simulated data sequences from the linear signal (M12).
+
+For the noiseless (M13), we do not present the results in a table since there is no need to repeat the experiment 100 times due to its noiseless structure. All methods detect 500 change-points without an error. Table 24 below gives a summary of the results for all signals used in the simulation study.
+
+|  | | Methods | | |
+|-------------|-------------|-------------|-------------|-------------|
+|          | ID |TGUH |WBS |WBS2|
+|**Models**| Criterion:|Within| top $10\%$ in terms| of accuracy|
+|**(NC1)**|$\checkmark$|$\checkmark$|        |            |
+|**(NC2)**|$\checkmark$|$\checkmark$|        |            |
+|**(NC3)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(NC4)**|$\checkmark$|$\checkmark$|$\checkmark$|            |
+|**(M1)** |            |            |  |$\checkmark$|
+|**(M2)** |            |            |$\checkmark$|$\checkmark$|
+|**(M3)** |            |            |$\checkmark$|$\checkmark$|
+|**(M4)** |            |            |$\checkmark$|$\checkmark$|
+|**(M5)** |$\checkmark$|$\checkmark$|$\checkmark$|            |
+|**(M6)** |            |            |            |$\checkmark$|
+|**(M7)** |$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(M8)** |            |            |$\checkmark$|$\checkmark$|
+|**(M9)** |            |$\checkmark$|            |            |
+|**(M10)**|            |            |$\checkmark$|$\checkmark$|
+|**(M11)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(M12)**|$\checkmark$|$\checkmark$|            |$\checkmark$|
+|**(M13)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|         | Criterion:|The top| two methods in terms| of speed|
+|**(NC1)**|$\checkmark$|            |$\checkmark$|            |
+|**(NC2)**|$\checkmark$|            |$\checkmark$|            |
+|**(NC3)**|            |$\checkmark$|            |$\checkmark$|
+|**(NC4)**|            |$\checkmark$|$\checkmark$|            |
+|**(M1)** |$\checkmark$|            |$\checkmark$|            |
+|**(M2)** |$\checkmark$|            |$\checkmark$|            |
+|**(M3)** |$\checkmark$|            |$\checkmark$|            |
+|**(M4)** |$\checkmark$|            |$\checkmark$|            |
+|**(M5)** |$\checkmark$|$\checkmark$|            |            |
+|**(M6)** |            |$\checkmark$|$\checkmark$|            |
+|**(M7)** |$\checkmark$|            |$\checkmark$|            |
+|**(M8)** |$\checkmark$|$\checkmark$|            |$\checkmark$|
+|**(M9)** |$\checkmark$|            |$\checkmark$|            |
+|**(M10)**|$\checkmark$|            |$\checkmark$|            |
+|**(M12)**|            |$\checkmark$|$\checkmark$|            |
+Table: Table 24: Summary of the results when the SDLL model selection was employed for all the solution path algorithms.
+
+### Localised pruning based results
+In this section, we give the simulation results when the *model.lp* function from the package is employed at each of the solution path methods. The results are given in Tables 25 - 31 below and a summary of the results is given in Table 32. We do not present any results when the ID solution path is employed due to the fact that it should not be used in combination with the *model.lp* function. In order to present the results for (NC3), we had to set the value of *min.d* equal to 2, due to the fact that the length of the (NC3) signal is equal to 5.
+
+|  |  | $\hat{N} - N$ | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$0$|$1$|$2$| $\geq 3$ | MSE                    | Time (s)|
+| NOT    |           | 37| 19| 17|   27     |  373 $\times 10^{-5}$  |  0.392  |
+| TGUH   | **(NC1)** | 88|  9|  2|    1     |  78 $\times 10^{-5}$   |  4.511  |
+| WBS    |           | 45| 20| 20|   15     |  332 $\times 10^{-5}$  |  0.243  |
+| WBS2   |           | 48| 17| 15|   20     |  285 $\times 10^{-5}$  |  1.745  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| NOT    |           | 97|  3|  0|    0     |  26 $\times 10^{-3}$   |  0.002  |
+| TGUH   | **(NC2)** | 93|  6|  1|    0     |  32 $\times 10^{-3}$   |  0.009  |
+| WBS    |           | 91|  6|  3|    0     |  37 $\times 10^{-3}$   |  0.002  |
+| WBS2   |           | 91|  5|  4|    0     |  38 $\times 10^{-3}$   |  0.011  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| NOT    |           | 99|  1|  0|    0     | 174 $\times 10^{-3}$   |  0.002  |
+| TGUH   | **(NC3)** | 67| 33|  0|    0     | 325 $\times 10^{-3}$   |  0.010  |
+| WBS    |           | 85| 15|  0|    0     | 249 $\times 10^{-3}$   |  0.002  |
+| WBS2   |           | 85| 15|  0|    0     | 249 $\times 10^{-3}$   |  0.003  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| NOT    |           | 51| 16| 23|    10    |  91 $\times 10^{-5}$   |  3.065  |
+| TGUH   | **(NC4)** | 89|  7|  4|    0     |  22 $\times 10^{-5}$   |  11.738 |
+| WBS    |           | 57| 14| 13|   16     |  91 $\times 10^{-5}$   |  1.884  |
+| WBS2   |           | 36| 25| 20|   19     |  99 $\times 10^{-5}$   |  13.128 |
+Table: Table 25: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1)-(NC4). Also the average MSE and computational times for each method are given.
+
+
+|  |  | | | |$\hat{N} - N$ | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$             |Time (s)|
+| NOT    |           |       4 |     0|  17|44 |22 | 10|     3  |4.084              |571 $\times10^{-4}$| 0.143  |
+| TGUH   | **(M1)**  |       2 |     2|  15|56 |17 | 8 |     0  |3.717              |320 $\times10^{-4}$| 0.181  |
+| WBS    |           |       8 |     1|  17|43 |16 | 14|     1  |5.500              |745 $\times10^{-4}$| 0.056  |
+| WBS2   |           |       5 |     1|  14|45 |15 | 14|     6  |4.043              |561 $\times10^{-4}$| 0.623  |
+|        |           |         |      |    |   |   |   |        |                   |                   |        |
+|        |           |         |      |    |   |   |   |        |                   |                   |        |
+| NOT    |           |       0 |    12|   6|56 |16 | 7 |     3  |59 $\times 10^{-4}$|53 $\times 10^{-3}$ |0.034  |
+| TGUH   | **(M2)**  |       0 |     4|   2|69 |14 | 9 |     2  |50 $\times 10^{-4}$|36 $\times 10^{-3}$ |0.049  |
+| WBS    |           |       0 |     2|   0|77 |8  |10 |     3  |47 $\times 10^{-4}$|43 $\times 10^{-3}$ |0.028  |
+| WBS2   |           |       0 |     3|   0|76 |12 | 7 |     2  |49 $\times 10^{-4}$|47 $\times 10^{-3}$ |0.130  |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+| NOT    |           |       12|    21|  34|28 |5  | 0 |     0  |2.241              |103 $\times 10^{-3}$| 0.036 |
+| TGUH   | **(M3)**  |        1|    12|  27|43 |11 | 5 |     1  |1.738              |98 $\times 10^{-3}$ | 0.298 |
+| WBS    |           |        4|    26|  42|26 |2  | 0 |     0  |2.127              |98  $\times 10^{-3}$| 0.029 |
+| WBS2   |           |        0|    12|  38|42 |8  | 0 |     0  |1.506              |94  $\times 10^{-3}$| 0.144 |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+| NOT    |           |       60|    17|   7|16 |0  | 0 |     0  |113 $\times10^{-3}$|145 $\times 10^{-3}$| 0.013 |
+| TGUH   | **(M4)**  |       19|    24|   2|55 |0  | 0 |     0  |75 $\times10^{-3}$ |67  $\times 10^{-3}$| 0.021 |
+| WBS    |           |       31|    23|  16|30 |0  | 0 |     0  |86 $\times10^{-3}$ |92  $\times 10^{-3}$| 0.008 |
+| WBS2   |           |       44|    21|   8|27 |0  | 0 |     0  |100 $\times10^{-3}$|122 $\times 10^{-3}$| 0.031 |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+|        |           |         |      |    |   |   |   |        |                   |                    |       |
+| NOT    |           |       0 |     0|  23|70 |5  | 2 |     0  |27 $\times10^{-3}$ |23 $\times 10^{-3}$ | 0.170 |
+| TGUH   | **(M5)**  |       0 |     0|   0|99 |1  | 0 |     0  |23 $\times10^{-3}$ |9  $\times 10^{-3}$ | 0.024 |
+| WBS    |           |       0 |     3|  27|70 |0  | 0 |     0  |36 $\times10^{-3}$ |26 $\times 10^{-3}$ | 0.021 |
+| WBS2   |           |       0 |     1|  26|73 |0  | 0 |     0  |35 $\times10^{-3}$ |23 $\times 10^{-3}$ | 0.032 |
+Table: Table 26: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M1)-(M5). The average MSE, $d_H$ and computational time are also given.
+
+
+|  | | |$\hat{N} - N$ | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$\leq -150$|$(-150,-50]$|$(-50,-10)$|$[-10,10]$|$(10,50]$|$>50$| MSE |$d_H$              |Time (s)|
+| NOT    |       68  |          32|          0|        0 |      0  |   0 |0.437|580 $\times10^{-4}$|0.21    |
+| TGUH   |       2   |           8|         71|       19 |      0  |   0 |0.192|147 $\times10^{-4}$|4.63    |
+| WBS    |      98   |           2|          0|        0 |      0  |   0 |0.472|774 $\times10^{-4}$|0.18    |
+| WBS2   |       0   |           0|          0|      100 |      0  |   0 |0.105|36 $\times10^{-4}$ |3.85    |
+
+Table: Table 27: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M6). The average MSE, $d_H$ and computational time are also given.
+
+|  | | | |$\hat{N} - N$ | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model  |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$              |Time (s)|
+| NOT    |        |  33|  38| 26|  3| 0 |0.692|321 $\times10^{-3}$|0.004   |
+| TGUH   |**(M7)**|   0|   0| 92|  8| 0 |0.212|36 $\times10^{-3}$ |0.010   |
+| WBS    |        |   0|   3| 97|  0| 0 |0.181|30 $\times10^{-3}$ |0.001   |
+| WBS2   |        |   0|   2| 96|  2| 0 |0.172|29 $\times10^{-3}$ |0.013   |
+|        |        |    |    |   |   |   |     |                   |        |
+|        |        |    |    |   |   |   |     |                   |        |
+| NOT    |        |  95|   3|  2|  0|  0|2.210|678 $\times10^{-3}$|0.002   |
+| TGUH   |**(M8)**|  16|   5| 79|  0|  0|0.761|147 $\times10^{-3}$|0.003   |
+| WBS    |        |  39|  13| 48|  0|  0|1.313|335 $\times10^{-3}$|0.002   |
+| WBS2   |        |  39|  13| 48|  0|  0|1.313|335 $\times10^{-3}$|0.002   |
+Table: Table 28: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signals (M7) and (M8). The average MSE, $d_H$ and computational time are also given.
+
+
+|  | | | |$\hat{N} - N$ | | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE                | $d_H$             |Time (s)|
+| NOT    |       0 |     0|   2|45 |37 | 10|     6  |182 $\times 10^{-3}$|54 $\times10^{-3}$ | 0.071  |
+| TGUH   |       0 |     0|   0|72 |18 | 6 |     4  |34  $\times 10^{-6}$|19 $\times10^{-3}$ | 1.642  |
+| WBS    |       3 |     1|   8|45 |14 | 20|     9  |610 $\times 10^{-3}$|97 $\times10^{-3}$ | 0.470  |
+| WBS2   |       2 |     2|   5|44 |16 | 16|     15 |750 $\times 10^{-3}$|104 $\times10^{-3}$| 2.812  |
+Table: Table 29: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M9). The average MSE, $d_H$ and computational time are also given.
+
+| | | |$\hat{N} - N$ | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method |$-2$|$-1$|$0$|$1$|$\geq 2$| MSE |$d_H$               |Time (s)|
+| NOT    |  73|   2| 25|  0| 0 |4.972|371 $\times10^{-4}$ |0.069   |
+| TGUH   |  35|   9| 56|  0| 0 |4.925|185 $\times10^{-4}$ |0.863   |
+| WBS    |  80|   4| 16|  0| 0 |4.981|404 $\times10^{-4}$ |0.048   |
+| WBS2   |  46|   8| 46|  0| 0 |4.925|240 $\times10^{-4}$ |0.726   |
+Table: Table 30: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the piecewise-constant signal (M10). The average MSE, $d_H$ and computational time are also given.
+
+For the signal (M11), since there is no noise, we do not need to repeat our simulations 100 times; the input will be the same each time. NOT, WBS, and WBS2 detect only one change-point at location 550, while TGUH detects two change-points at locations 550 and 750. We proceed with the results for (M12), which are given in Table 31 below.
+
+| Method |$\hat{N}$|MSE   |Time (s)|
+|-------------|-------------|-------------|-------------|
+| NOT    |  56.42  |23.797|   1.076|
+| TGUH   |  55.71  |7.777 |   0.146|
+| WBS    |  45.62  |12.692|   0.181|
+| WBS2   |  58.01  |7.191 |   0.158|
+Table: Table 31: The average $\hat{N}$, MSE, and computational times over 100 simulated data sequences from the linear signal (M12).
+
+For the noiseless (M13), NOT, TGUH, WBS, and WBS2 detect 39, 51, 52, 63 change-points, respectively. Table 32 below gives a summary of the results for all signals used in the simulation study.
+
+|  | |Methods | | |
+|-------------|-------------|-------------|-------------|-------------|
+|          | NOT |TGUH |WBS |WBS2|
+|**Models**| Criterion:|Within top $10\%$| in terms| of accuracy|
+|**(NC1)**|      |$\checkmark$|          |         |
+|**(NC2)**|$\checkmark$|$\checkmark$|$\checkmark$|$\checkmark$|
+|**(NC3)**|$\checkmark$|            |            |            |
+|**(NC4)**|            |$\checkmark$|            |            |
+|**(M1)** |            |$\checkmark$|            |            |
+|**(M2)** |            |$\checkmark$|$\checkmark$|$\checkmark$|
+|**(M3)** |            |$\checkmark$|            |$\checkmark$|
+|**(M4)** |            |$\checkmark$|            |            |
+|**(M5)** |            |$\checkmark$|            |            |
+|**(M6)** |            |            |            |$\checkmark$|
+|**(M7)** |            |$\checkmark$|$\checkmark$|$\checkmark$|
+|**(M8)** |            |$\checkmark$|            |            |
+|**(M9)** |            |$\checkmark$|            |            |
+|**(M10)**|            |$\checkmark$|            |            |
+|**(M11)**|            |$\checkmark$|            |            |
+|**(M12)**|$\checkmark$|$\checkmark$|            |$\checkmark$|
+|**(M13)**|            |            |            |$\checkmark$|
+|         | Criterion:|The top two methods| in terms| of speed|
+|**(NC1)**|$\checkmark$|            |$\checkmark$|            |
+|**(NC2)**|$\checkmark$|            |$\checkmark$|            |
+|**(NC3)**|$\checkmark$|            |$\checkmark$|            |
+|**(NC4)**|$\checkmark$|            |$\checkmark$|            |
+|**(M1)** |$\checkmark$|            |$\checkmark$|            |
+|**(M2)** |$\checkmark$|            |$\checkmark$|            |
+|**(M3)** |$\checkmark$|            |$\checkmark$|            |
+|**(M4)** |$\checkmark$|            |$\checkmark$|            |
+|**(M5)** |            |$\checkmark$|$\checkmark$|            |
+|**(M6)** |$\checkmark$|            |$\checkmark$|            |
+|**(M7)** |$\checkmark$|            |$\checkmark$|            |
+|**(M8)** |$\checkmark$|            |$\checkmark$|$\checkmark$|
+|**(M9)** |$\checkmark$|            |$\checkmark$|            |
+|**(M10)**|$\checkmark$|            |$\checkmark$|            |
+|**(M12)**|            |$\checkmark$|            |$\checkmark$|
+Table: Table 32: Summary of the results when the localised pruning model selection was employed for all the solution path algorithms.
