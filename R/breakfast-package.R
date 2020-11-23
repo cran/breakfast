@@ -1,4 +1,4 @@
-#' @title Breakfast: Computationally Efficient Multiple Change-Point Detection and Estimation with a Broad Range of Methods
+#' @title Breakfast: Methods for Fast Multiple Change-point Detection and Estimation
 #' @description  A developing software suite for multiple change-point detection/estimation (data segmentation) in data sequences. 
 #' @details
 #' The current version implements the Gaussian mean-shift model, 
@@ -22,7 +22,7 @@
 #' \item \href{http://stats.lse.ac.uk/fryzlewicz/}{Piotr Fryzlewicz}
 #' }
 #' 
-#' We would like to thank Shakeel Gavioli-Akilagun, Anica Kostic, Shuhan Yang and Christine Yuen for their comments and suggestions that helped improving this package.
+#' We would like to thank Shakeel Gavioli-Akilagun, Anica Kostic, Shuhan Yang and Christine Yuen for their comments and suggestions that helped improve this package.
 #' 
 #' @seealso \code{browseVignettes(package = "breakfast")} contains a detailed comparative simulation study of various methods 
 #' implemented in \link[breakfast]{breakfast} for the Gaussian mean-shift model.

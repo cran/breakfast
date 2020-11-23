@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{breakfast}
 \alias{breakfast}
-\title{multiple change-point detection and estimation with a broad range of methods}
+\title{Methods for fast multiple change-point detection and estimation}
 \usage{
 breakfast(
   x,

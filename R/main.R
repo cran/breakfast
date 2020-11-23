@@ -1,4 +1,4 @@
-#' @title multiple change-point detection and estimation with a broad range of methods
+#' @title Methods for fast multiple change-point detection and estimation
 #' @description This function estimates the number and locations of change-points in a data sequence,
 #' which is modelled as a piecewise-constant function plus i.i.d. Gaussian noise. 
 #' This is carried out via a two-stage procedure combining solution path generation and model selection methodologies.

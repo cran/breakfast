@@ -1,13 +1,12 @@
 Package: breakfast
-Title: breakfast: Computationally Efficient Multiple Change-Point
-        Detection and Estimation with a Broad Range of Methods
-Version: 2.0
+Title: Methods for Fast Multiple Change-Point Detection and Estimation
+Version: 2.1
 Authors@R: c(
     person("Andreas", "Anastasiou", email = "anastasiou.andreas@ucy.ac.cy", role = "aut"),
     person("Yining", "Chen", email = "y.chen101@lse.ac.uk", role = c("aut", "cre")),
     person("Haeran", "Cho", email = "haeran.cho@bristol.ac.uk", role = "aut"),
     person("Piotr", "Fryzlewicz", email = "p.fryzlewicz@lse.ac.uk", role = "aut"))
-Description: The breakfast package contains a collection of change-point detection and estimation methods, together with model selection and ensemble devices and visualisation tools.
+Description: A developing software suite for multiple change-point detection/estimation (data segmentation) in data sequences.
 Depends: R (>= 3.0.0)
 LazyData: true
 License: GPL-2
@@ -18,11 +17,11 @@ Suggests: testthat, knitr, rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 7.1.0
 NeedsCompilation: yes
-Packaged: 2020-11-02 22:48:46 UTC; chen
+Packaged: 2020-11-23 00:24:47 UTC; chen
 Author: Andreas Anastasiou [aut],
   Yining Chen [aut, cre],
   Haeran Cho [aut],
   Piotr Fryzlewicz [aut]
 Maintainer: Yining Chen <y.chen101@lse.ac.uk>
 Repository: CRAN
-Date/Publication: 2020-11-03 06:40:31 UTC
+Date/Publication: 2020-11-23 05:50:06 UTC
