@@ -8,10 +8,10 @@
 #' 
 #' @param cptpath.object A solution-path object, returned by a \code{sol.[name]} routine. Note that the field \code{cptpath.object$x} contains the input data sequence. 
 #' @param alpha The parameter associated with the sSIC. The default value is 1.01. Note that the SIC is recovered when alpha = 1.
-#' @param q.max The maximum number of change-points allowed. If nothing or \code{NULL} is provided, the default value of around \code{min(25, n/log(n))} will be used.
+#' @param q.max The maximum number of change-points allowed. If nothing or \code{NULL} is provided, the default value of \code{min(100, n/log(n))} (rounded to an integer) will be used.
 #' @return An S3 object of class \code{cptmodel}, which contains the following fields: 
 #' \item{solution.path}{The solution path method used to obtain \code{cptpath.object}}
-#' \item{model}{The model selection method used to return the final change-point estimators object, here its value is \code{"ic"}}
+#' \item{model.selection}{The model selection method used to return the final change-point estimators object, here its value is \code{"ic"}}
 #' \item{no.of.cpt}{The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
 #' \item{cpts}{The locations of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean intervals}
 #' \item{est}{An estimate of the piecewise-constant mean of the vector \code{cptpath.object$x}; the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points}
@@ -32,7 +32,7 @@ model.ic <- function(cptpath.object, alpha=1.01, q.max = NULL) {
                                                         we recommend that you use sol.idetect to create the cptpath.object instead of
                                                         sol.idetect_seq')
     ret$solution.path = cptpath.object$method
-    ret$model <- "ic"
+    ret$model.selection <- "ic"
     
     if(is.null(q.max)) q.max.null=TRUE
     else q.max.null=FALSE

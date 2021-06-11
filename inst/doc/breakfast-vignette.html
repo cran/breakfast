@@ -355,12 +355,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <div id="executive-summary" class="section level1" number="1">
 <h1 number="1"><span class="header-section-number">1</span> Executive summary</h1>
-<p>The <em>breakfast</em> package contains a broad range of methods for computationally efficient multiple change-point detection. The main function is <em>breakfast</em>. The current version of the package implements the Gaussian mean-shift model, in which the signal is modelled as piecewise constant and is observed in additive noise, which is assumed to be independent, identically distributed Gaussian with zero mean and unknown constant variance. More models will be added in next versions of the package.</p>
+<p>The <em>breakfast</em> package contains a broad range of methods for computationally efficient multiple change-point detection. The main function is <em>breakfast</em>. The current version of the package implements the Gaussian mean-shift model, in which the signal is modelled as piecewise-constant and is observed in additive noise, which is assumed to be independent, identically distributed Gaussian with zero mean and unknown constant variance. More models will be added in next versions of the package.</p>
 <p>Change-point detection in breakfast is carried out in two stages: (i) computation of a solution path, and (ii) model selection along the path. The supported solution paths methods include IDetect, NOT, TGUH, WBS and WBS2, while the supported model selection methods are based on an information criterion (IC), localised pruning (LP), steepest drop to low levels (SDLL), and thresholding. We provide a comparison between different approaches in a comprehensive simulation study. The main findings and recommendations as follows.</p>
 <ul>
 <li><p>In datasets in which frequent change-points are suspected, we recommend the SDLL model selection criterion, which works particularly well in conjunction with the WBS2 solution path.</p></li>
 <li><p>In datasets in which a moderate number of change-points is suspected, we recommend the IC model selection criterion, which works particularly well in conjunction with the IDetect solution path.</p></li>
-<li><p>The thresholding model selection criterion works particularly well in conjunction with the IDetect solution path.</p></li>
+<li><p>The thresholding model selection criterion works particularly well in conjunction with the solution path of the sequential IDetect.</p></li>
 <li><p>The localised pruning model selection criterion works particularly well in conjunction with the TGUH solution path.</p></li>
 </ul>
 </div>
@@ -379,7 +379,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h2 number="2.2"><span class="header-section-number">2.2</span> Solution path methods</h2>
 <div id="isolation-and-detection-idetect" class="section level3" number="2.2.1">
 <h3 number="2.2.1"><span class="header-section-number">2.2.1</span> Isolation and Detection (IDetect)</h3>
-<p>The Isolate-Detect method and its algorithm is described in <a href="https://arxiv.org/pdf/1901.10852.pdf">Detecting multiple generalized change-points by isolating single ones.</a> A. Anastasiou and P. Fryzlewicz (2019), arXiv preprint.</p>
+<p>The Isolate-Detect method and its algorithm is described in <a href="https://doi.org/10.1007/s00184-021-00821-6">Detecting multiple generalized change-points by isolating single ones.</a> A. Anastasiou and P. Fryzlewicz (2021), Metrika.</p>
 <div id="sequential-version" class="section level4" number="2.2.1.1">
 <h4 number="2.2.1.1"><span class="header-section-number">2.2.1.1</span> Sequential version</h4>
 <p>The key ingredient of Isolate-Detect is the isolation of each of the true change-points within subintervals of the domain. For a positive integer <span class="math inline">\(\lambda_T\)</span>, right- and left-expanding intervals are created as follows: the <span class="math inline">\(j^{th}\)</span> right-expanding interval is <span class="math inline">\(R_j = [1,j{\lambda_T}]\)</span>, while the <span class="math inline">\(j^{th}\)</span> left-expanding interval is <span class="math inline">\(L_{j} = [T - j\lambda_T + 1,T]\)</span>, where <span class="math inline">\(T\)</span> is the length of a given data sequence. We collect these intervals in the ordered set <span class="math inline">\(S_{RL} = \left\lbrace R_1, L_1, R_2, L_2, \ldots,R_K,L_K\right\rbrace\)</span> and firstly we identify the data-point (denoted by <span class="math inline">\(\tilde{b}_1\)</span>) of <span class="math inline">\(R_1\)</span> with the largest CUSUM statistic. If this value exceeds a given threshold level, then the algorithm makes a new start from <span class="math inline">\(\tilde{b}_1\)</span>. If not, then the process tests the next interval in <span class="math inline">\(S_{RL}\)</span>. We stop when all the data sequence has been scanned.</p>
@@ -444,13 +444,13 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <li>Methods for piecewise-linear signals plus iid Gaussian noise</li>
 <li>Extensions to serially correlated, light-tailed noise</li>
 <li>Robust methods for heavy-tailed noise which detect changes in the piecewise-constant median</li>
-<li>Interval sampling in WBS, WBS2 and NOT based on a deterministic grid</li>
 <li>Data windowing for extremely long signals</li>
 </ul>
 </div>
 </div>
 <div id="simulation-study" class="section level1" number="3">
 <h1 number="3"><span class="header-section-number">3</span> Simulation study</h1>
+<p>The following simulation study shows the performance of all the solution path methods when combined with the model selection methods for various signals. The results presented in this section are based upon version 2.1 of the package, where for NOT, WBS, and WBS2 the intervals are randomly drawn. In the next version of the package we will also investigate the performance of the three aforementioned solution path methods for a deterministic grid.</p>
 <div id="simulated-signals" class="section level2" number="3.1">
 <h2 number="3.1"><span class="header-section-number">3.1</span> Simulated signals</h2>
 <p>The signals used in the simulation study are</p>
@@ -4978,42 +4978,42 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tr class="even">
 <td>ID</td>
 <td></td>
-<td>88</td>
-<td>9</td>
-<td>1</td>
-<td>2</td>
-<td>73 <span class="math inline">\(\times 10^{-5}\)</span></td>
-<td>0.11</td>
+<td>89</td>
+<td>3</td>
+<td>3</td>
+<td>5</td>
+<td>14 <span class="math inline">\(\times 10^{-5}\)</span></td>
+<td>0.10</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td><strong>(NC1)</strong></td>
-<td>93</td>
-<td>5</td>
+<td>97</td>
+<td>2</td>
 <td>1</td>
-<td>1</td>
-<td>45 <span class="math inline">\(\times 10^{-5}\)</span></td>
-<td>0.20</td>
+<td>0</td>
+<td>4 <span class="math inline">\(\times 10^{-5}\)</span></td>
+<td>0.19</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
-<td>79</td>
-<td>6</td>
-<td>7</td>
-<td>8</td>
-<td>211 <span class="math inline">\(\times 10^{-5}\)</span></td>
-<td>0.06</td>
+<td>94</td>
+<td>4</td>
+<td>1</td>
+<td>1</td>
+<td>6 <span class="math inline">\(\times 10^{-5}\)</span></td>
+<td>0.04</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
-<td>79</td>
-<td>12</td>
+<td>93</td>
 <td>3</td>
-<td>6</td>
-<td>149 <span class="math inline">\(\times 10^{-5}\)</span></td>
-<td>1.13</td>
+<td>4</td>
+<td>0</td>
+<td>7 <span class="math inline">\(\times 10^{-5}\)</span></td>
+<td>1.22</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -5038,42 +5038,42 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tr class="even">
 <td>ID</td>
 <td></td>
-<td>90</td>
-<td>1</td>
-<td>1</td>
-<td>8</td>
+<td>86</td>
+<td>2</td>
+<td>7</td>
+<td>5</td>
 <td>62 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.003</td>
+<td>0.002</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td><strong>(NC2)</strong></td>
-<td>95</td>
+<td>96</td>
 <td>3</td>
 <td>0</td>
-<td>2</td>
-<td>23 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.012</td>
+<td>1</td>
+<td>24 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.010</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
-<td>72</td>
-<td>7</td>
-<td>5</td>
-<td>16</td>
-<td>123 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.001</td>
+<td>85</td>
+<td>3</td>
+<td>4</td>
+<td>8</td>
+<td>79 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.002</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
-<td>76</td>
-<td>5</td>
+<td>89</td>
+<td>1</td>
 <td>4</td>
-<td>15</td>
-<td>118 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.017</td>
+<td>6</td>
+<td>68 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.014</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -5098,41 +5098,41 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tr class="even">
 <td>ID</td>
 <td></td>
-<td>75</td>
-<td>13</td>
+<td>84</td>
 <td>11</td>
-<td>1</td>
-<td>292 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.002</td>
+<td>5</td>
+<td>0</td>
+<td>240 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.001</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td><strong>(NC3)</strong></td>
-<td>74</td>
-<td>17</td>
-<td>2</td>
-<td>7</td>
-<td>292 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>85</td>
+<td>10</td>
+<td>1</td>
+<td>4</td>
+<td>239 <span class="math inline">\(\times 10^{-3}\)</span></td>
 <td>0.001</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
-<td>70</td>
-<td>15</td>
+<td>84</td>
 <td>8</td>
-<td>7</td>
-<td>320 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.002</td>
+<td>3</td>
+<td>5</td>
+<td>252 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.001</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
-<td>70</td>
-<td>15</td>
+<td>84</td>
 <td>8</td>
-<td>7</td>
-<td>320 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>3</td>
+<td>5</td>
+<td>252 <span class="math inline">\(\times 10^{-3}\)</span></td>
 <td>0.001</td>
 </tr>
 <tr class="even">
@@ -5159,41 +5159,41 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <td>ID</td>
 <td></td>
 <td>94</td>
-<td>4</td>
+<td>3</td>
+<td>2</td>
 <td>1</td>
-<td>1</td>
-<td>15 <span class="math inline">\(\times 10^{-5}\)</span></td>
-<td>0.64</td>
+<td>19 <span class="math inline">\(\times 10^{-5}\)</span></td>
+<td>0.62</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td><strong>(NC4)</strong></td>
-<td>93</td>
-<td>6</td>
+<td>99</td>
 <td>1</td>
 <td>0</td>
-<td>12 <span class="math inline">\(\times 10^{-5}\)</span></td>
-<td>0.43</td>
+<td>0</td>
+<td>11 <span class="math inline">\(\times 10^{-5}\)</span></td>
+<td>0.46</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
-<td>85</td>
-<td>4</td>
-<td>7</td>
-<td>4</td>
-<td>43 <span class="math inline">\(\times 10^{-5}\)</span></td>
-<td>0.12</td>
+<td>98</td>
+<td>2</td>
+<td>0</td>
+<td>0</td>
+<td>11 <span class="math inline">\(\times 10^{-5}\)</span></td>
+<td>0.14</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
-<td>84</td>
-<td>11</td>
-<td>3</td>
-<td>3</td>
-<td>20 <span class="math inline">\(\times 10^{-5}\)</span></td>
-<td>3.39</td>
+<td>94</td>
+<td>5</td>
+<td>1</td>
+<td>0</td>
+<td>12 <span class="math inline">\(\times 10^{-5}\)</span></td>
+<td>4.04</td>
 </tr>
 </tbody>
 </table>
@@ -5233,57 +5233,57 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tr class="even">
 <td>ID</td>
 <td></td>
-<td>1</td>
-<td>15</td>
-<td>55</td>
-<td>24</td>
+<td>0</td>
+<td>5</td>
+<td>56</td>
+<td>29</td>
+<td>6</td>
 <td>3</td>
 <td>1</td>
-<td>1</td>
-<td>3.304</td>
-<td>245 <span class="math inline">\(\times10^{-4}\)</span></td>
+<td>2.992</td>
+<td>223 <span class="math inline">\(\times10^{-4}\)</span></td>
 <td>0.03</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td><strong>(M1)</strong></td>
-<td>2</td>
-<td>14</td>
-<td>54</td>
-<td>24</td>
-<td>6</td>
+<td>3</td>
+<td>12</td>
+<td>49</td>
+<td>33</td>
+<td>3</td>
 <td>0</td>
 <td>0</td>
-<td>3.662</td>
-<td>245 <span class="math inline">\(\times10^{-4}\)</span></td>
-<td>0.15</td>
+<td>3.716</td>
+<td>244 <span class="math inline">\(\times10^{-4}\)</span></td>
+<td>0.13</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
-<td>0</td>
-<td>4</td>
-<td>63</td>
-<td>26</td>
-<td>5</td>
-<td>0</td>
+<td>1</td>
+<td>11</td>
+<td>64</td>
+<td>17</td>
 <td>2</td>
-<td>2.868</td>
-<td>271 <span class="math inline">\(\times10^{-4}\)</span></td>
-<td>0.05</td>
+<td>3</td>
+<td>2</td>
+<td>2.997</td>
+<td>223 <span class="math inline">\(\times10^{-4}\)</span></td>
+<td>0.03</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
 <td>0</td>
-<td>5</td>
+<td>3</td>
 <td>54</td>
-<td>32</td>
-<td>3</td>
-<td>3</td>
-<td>3</td>
-<td>2.975</td>
-<td>246 <span class="math inline">\(\times10^{-4}\)</span></td>
+<td>33</td>
+<td>8</td>
+<td>0</td>
+<td>2</td>
+<td>2.786</td>
+<td>196 <span class="math inline">\(\times10^{-4}\)</span></td>
 <td>0.76</td>
 </tr>
 <tr class="even">
@@ -5318,57 +5318,57 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <td>ID</td>
 <td></td>
 <td>0</td>
-<td>6</td>
-<td>21</td>
-<td>69</td>
-<td>3</td>
 <td>0</td>
-<td>1</td>
-<td>66 <span class="math inline">\(\times 10^{-4}\)</span></td>
-<td>26 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.009</td>
+<td>0</td>
+<td>91</td>
+<td>3</td>
+<td>4</td>
+<td>2</td>
+<td>43 <span class="math inline">\(\times 10^{-4}\)</span></td>
+<td>23 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.010</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td><strong>(M2)</strong></td>
 <td>0</td>
-<td>4</td>
-<td>59</td>
-<td>34</td>
-<td>1</td>
 <td>2</td>
+<td>63</td>
+<td>29</td>
+<td>5</td>
 <td>0</td>
+<td>1</td>
 <td>99 <span class="math inline">\(\times 10^{-4}\)</span></td>
-<td>34 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.057</td>
+<td>36 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.059</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
 <td>0</td>
 <td>0</td>
+<td>5</td>
+<td>83</td>
+<td>7</td>
 <td>2</td>
-<td>87</td>
-<td>6</td>
 <td>3</td>
-<td>2</td>
-<td>46 <span class="math inline">\(\times 10^{-4}\)</span></td>
-<td>32 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.033</td>
+<td>43 <span class="math inline">\(\times 10^{-4}\)</span></td>
+<td>29 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.012</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
 <td>0</td>
+<td>0</td>
 <td>1</td>
+<td>91</td>
 <td>4</td>
-<td>89</td>
-<td>2</td>
-<td>2</td>
-<td>2</td>
-<td>45 <span class="math inline">\(\times 10^{-4}\)</span></td>
-<td>23 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.168</td>
+<td>3</td>
+<td>1</td>
+<td>42 <span class="math inline">\(\times 10^{-4}\)</span></td>
+<td>18 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.176</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -5401,58 +5401,58 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tr class="even">
 <td>ID</td>
 <td></td>
-<td>28</td>
+<td>12</td>
+<td>24</td>
 <td>30</td>
-<td>18</td>
-<td>16</td>
+<td>30</td>
 <td>4</td>
-<td>1</td>
-<td>3</td>
-<td>2.115</td>
-<td>192 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0</td>
+<td>0</td>
+<td>1.642</td>
+<td>146 <span class="math inline">\(\times 10^{-3}\)</span></td>
 <td>0.013</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td><strong>(M3)</strong></td>
-<td>32</td>
-<td>26</td>
-<td>20</td>
-<td>10</td>
-<td>8</td>
+<td>34</td>
+<td>23</td>
+<td>25</td>
+<td>9</td>
+<td>4</td>
+<td>3</td>
 <td>2</td>
-<td>2</td>
-<td>2.352</td>
-<td>195 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.062</td>
+<td>2.489</td>
+<td>196 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.060</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
-<td>3</td>
-<td>16</td>
-<td>40</td>
-<td>28</td>
-<td>6</td>
-<td>3</td>
-<td>4</td>
-<td>1.700</td>
-<td>110 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.034</td>
+<td>10</td>
+<td>21</td>
+<td>39</td>
+<td>23</td>
+<td>5</td>
+<td>1</td>
+<td>1</td>
+<td>1.520</td>
+<td>140 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.010</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
-<td>5</td>
-<td>17</td>
-<td>38</td>
-<td>27</td>
+<td>12</td>
+<td>24</td>
+<td>36</td>
+<td>18</td>
 <td>7</td>
+<td>1</td>
 <td>2</td>
-<td>4</td>
-<td>1.600</td>
-<td>131 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.191</td>
+<td>1.562</td>
+<td>152 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.198</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -5485,58 +5485,58 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tr class="even">
 <td>ID</td>
 <td></td>
+<td>2</td>
+<td>4</td>
+<td>4</td>
+<td>77</td>
+<td>6</td>
+<td>4</td>
 <td>3</td>
-<td>3</td>
-<td>5</td>
-<td>37</td>
-<td>18</td>
-<td>15</td>
-<td>19</td>
-<td>64 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>50 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.008</td>
+<td>61 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>30 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.009</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td><strong>(M4)</strong></td>
-<td>27</td>
-<td>11</td>
+<td>29</td>
+<td>12</td>
 <td>16</td>
 <td>20</td>
-<td>8</td>
-<td>5</td>
-<td>13</td>
-<td>105 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>76 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.033</td>
+<td>10</td>
+<td>4</td>
+<td>9</td>
+<td>110 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>101 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.025</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
-<td>1</td>
-<td>2</td>
-<td>10</td>
-<td>75</td>
-<td>8</td>
 <td>0</td>
-<td>4</td>
-<td>55 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>26 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.005</td>
+<td>3</td>
+<td>8</td>
+<td>76</td>
+<td>9</td>
+<td>2</td>
+<td>2</td>
+<td>57 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>27 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.006</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
+<td>0</td>
+<td>3</td>
+<td>9</td>
+<td>75</td>
+<td>9</td>
 <td>2</td>
 <td>2</td>
-<td>5</td>
-<td>70</td>
-<td>15</td>
-<td>1</td>
-<td>5</td>
-<td>55 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>26 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.044</td>
+<td>57 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>27 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.041</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -5571,12 +5571,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <td></td>
 <td>0</td>
 <td>0</td>
+<td>2</td>
+<td>97</td>
+<td>1</td>
 <td>0</td>
-<td>94</td>
-<td>6</td>
 <td>0</td>
-<td>0</td>
-<td>22 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>23 <span class="math inline">\(\times10^{-3}\)</span></td>
 <td>10 <span class="math inline">\(\times 10^{-3}\)</span></td>
 <td>0.008</td>
 </tr>
@@ -5585,42 +5585,42 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <td><strong>(M5)</strong></td>
 <td>0</td>
 <td>0</td>
-<td>0</td>
-<td>97</td>
+<td>2</td>
+<td>95</td>
 <td>3</td>
 <td>0</td>
 <td>0</td>
-<td>9 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>13 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.030</td>
+<td>26 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>11 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.023</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
 <td>0</td>
-<td>1</td>
-<td>0</td>
-<td>87</td>
-<td>10</td>
 <td>0</td>
 <td>2</td>
+<td>82</td>
+<td>14</td>
+<td>1</td>
+<td>1</td>
 <td>26 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>12 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.031</td>
+<td>14 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.007</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
 <td>0</td>
 <td>0</td>
-<td>1</td>
-<td>82</td>
-<td>14</td>
 <td>2</td>
+<td>82</td>
+<td>15</td>
+<td>0</td>
 <td>1</td>
-<td>25 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>12 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.044</td>
+<td>26 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>13 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.040</td>
 </tr>
 </tbody>
 </table>
@@ -5656,50 +5656,50 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tr class="even">
 <td>ID</td>
 <td>0</td>
-<td>2</td>
-<td>1</td>
-<td>32</td>
-<td>54</td>
-<td>11</td>
-<td>0.119</td>
-<td>23 <span class="math inline">\(\times10^{-4}\)</span></td>
-<td>0.50</td>
-</tr>
-<tr class="odd">
-<td>TGUH</td>
 <td>0</td>
-<td>32</td>
-<td>54</td>
-<td>12</td>
-<td>2</td>
-<td>0</td>
-<td>0.274</td>
-<td>52 <span class="math inline">\(\times10^{-4}\)</span></td>
-<td>0.44</td>
-</tr>
-<tr class="even">
-<td>WBS</td>
 <td>0</td>
 <td>100</td>
 <td>0</td>
 <td>0</td>
+<td>0.113</td>
+<td>36 <span class="math inline">\(\times10^{-4}\)</span></td>
+<td>0.56</td>
+</tr>
+<tr class="odd">
+<td>TGUH</td>
+<td>0</td>
+<td>31</td>
+<td>58</td>
+<td>7</td>
+<td>4</td>
+<td>0</td>
+<td>0.270</td>
+<td>56 <span class="math inline">\(\times10^{-4}\)</span></td>
+<td>0.43</td>
+</tr>
+<tr class="even">
+<td>WBS</td>
+<td>1</td>
+<td>99</td>
 <td>0</td>
 <td>0</td>
-<td>0.409</td>
-<td>126 <span class="math inline">\(\times10^{-4}\)</span></td>
-<td>0.12</td>
+<td>0</td>
+<td>0</td>
+<td>0.509</td>
+<td>64 <span class="math inline">\(\times10^{-4}\)</span></td>
+<td>0.14</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td>0</td>
 <td>0</td>
+<td>1</td>
+<td>99</td>
 <td>0</td>
-<td>98</td>
-<td>2</td>
 <td>0</td>
-<td>0.110</td>
-<td>36 <span class="math inline">\(\times10^{-4}\)</span></td>
-<td>3.46</td>
+<td>0.109</td>
+<td>34 <span class="math inline">\(\times10^{-4}\)</span></td>
+<td>3.87</td>
 </tr>
 </tbody>
 </table>
@@ -5735,50 +5735,50 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tr class="even">
 <td>ID</td>
 <td></td>
-<td>1</td>
-<td>2</td>
-<td>80</td>
-<td>6</td>
-<td>11</td>
-<td>0.240</td>
-<td>64 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.005</td>
+<td>0</td>
+<td>4</td>
+<td>89</td>
+<td>4</td>
+<td>3</td>
+<td>0.232</td>
+<td>55 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.003</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td><strong>(M7)</strong></td>
-<td>3</td>
-<td>3</td>
-<td>86</td>
+<td>7</td>
+<td>2</td>
+<td>85</td>
 <td>5</td>
-<td>3</td>
-<td>0.264</td>
-<td>70 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.018</td>
+<td>1</td>
+<td>0.281</td>
+<td>79 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.012</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
 <td>0</td>
 <td>4</td>
-<td>83</td>
-<td>6</td>
-<td>7</td>
-<td>0.228</td>
-<td>60 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.005</td>
+<td>86</td>
+<td>5</td>
+<td>5</td>
+<td>0.231</td>
+<td>53 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.003</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
 <td>0</td>
+<td>3</td>
+<td>86</td>
 <td>5</td>
-<td>80</td>
-<td>7</td>
-<td>8</td>
-<td>0.233</td>
-<td>64 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.023</td>
+<td>6</td>
+<td>0.230</td>
+<td>53 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.015</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -5807,49 +5807,49 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tr class="even">
 <td>ID</td>
 <td></td>
-<td>40</td>
+<td>65</td>
 <td>2</td>
-<td>43</td>
-<td>14</td>
-<td>1</td>
-<td>1.296</td>
-<td>323 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.001</td>
+<td>31</td>
+<td>2</td>
+<td>0</td>
+<td>1.680</td>
+<td>474 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.003</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td><strong>(M8)</strong></td>
-<td>44</td>
-<td>5</td>
-<td>39</td>
-<td>8</td>
-<td>4</td>
-<td>1.430</td>
-<td>358 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>72</td>
+<td>2</td>
+<td>24</td>
+<td>2</td>
+<td>0</td>
+<td>1.812</td>
+<td>522 <span class="math inline">\(\times10^{-3}\)</span></td>
 <td>0.002</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td></td>
+<td>65</td>
+<td>1</td>
 <td>31</td>
-<td>4</td>
-<td>57</td>
-<td>5</td>
 <td>3</td>
-<td>1.175</td>
-<td>267 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.003</td>
+<td>0</td>
+<td>1.667</td>
+<td>470 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.001</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td></td>
+<td>65</td>
+<td>1</td>
 <td>31</td>
-<td>4</td>
-<td>57</td>
-<td>5</td>
 <td>3</td>
-<td>1.175</td>
-<td>267 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0</td>
+<td>1.667</td>
+<td>470 <span class="math inline">\(\times10^{-3}\)</span></td>
 <td>0.002</td>
 </tr>
 </tbody>
@@ -5890,52 +5890,52 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <td>0</td>
 <td>0</td>
 <td>0</td>
-<td>47</td>
-<td>39</td>
-<td>9</td>
-<td>5</td>
-<td>31 <span class="math inline">\(\times 10^{-6}\)</span></td>
-<td>23 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.039</td>
+<td>91</td>
+<td>7</td>
+<td>1</td>
+<td>1</td>
+<td>25 <span class="math inline">\(\times 10^{-6}\)</span></td>
+<td>8 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.043</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
-<td>94</td>
-<td>4</td>
+<td>97</td>
 <td>2</td>
+<td>1</td>
 <td>0</td>
 <td>21 <span class="math inline">\(\times 10^{-6}\)</span></td>
-<td>7 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.142</td>
+<td>3 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.163</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
-<td>80</td>
-<td>8</td>
+<td>93</td>
 <td>4</td>
-<td>4</td>
-<td>34 <span class="math inline">\(\times 10^{-6}\)</span></td>
-<td>23 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.050</td>
+<td>2</td>
+<td>1</td>
+<td>26 <span class="math inline">\(\times 10^{-6}\)</span></td>
+<td>6 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.038</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
-<td>83</td>
-<td>9</td>
-<td>6</td>
+<td>90</td>
+<td>4</td>
+<td>4</td>
 <td>2</td>
-<td>29 <span class="math inline">\(\times 10^{-6}\)</span></td>
-<td>15 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.801</td>
+<td>25 <span class="math inline">\(\times 10^{-6}\)</span></td>
+<td>11 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>1.008</td>
 </tr>
 </tbody>
 </table>
@@ -5970,45 +5970,45 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <td>ID</td>
 <td>0</td>
 <td>0</td>
-<td>56</td>
-<td>39</td>
-<td>5</td>
-<td>0.002</td>
-<td>55 <span class="math inline">\(\times 10^{-3}\)</span></td>
-<td>0.037</td>
+<td>87</td>
+<td>6</td>
+<td>7</td>
+<td>0.003</td>
+<td>37 <span class="math inline">\(\times 10^{-3}\)</span></td>
+<td>0.039</td>
 </tr>
 <tr class="odd">
 <td>TGUH</td>
 <td>0</td>
 <td>96</td>
-<td>2</td>
+<td>3</td>
 <td>1</td>
-<td>1</td>
-<td>4.996</td>
-<td>16 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.128</td>
+<td>0</td>
+<td>4.946</td>
+<td>12 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.145</td>
 </tr>
 <tr class="even">
 <td>WBS</td>
 <td>0</td>
+<td>92</td>
+<td>7</td>
 <td>1</td>
-<td>81</td>
-<td>9</td>
-<td>9</td>
-<td>0.053</td>
-<td>55 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.049</td>
+<td>0</td>
+<td>4.996</td>
+<td>20 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.033</td>
 </tr>
 <tr class="odd">
 <td>WBS2</td>
 <td>0</td>
 <td>0</td>
-<td>90</td>
+<td>94</td>
 <td>4</td>
-<td>6</td>
+<td>2</td>
 <td>0.002</td>
-<td>31 <span class="math inline">\(\times10^{-3}\)</span></td>
-<td>0.672</td>
+<td>17 <span class="math inline">\(\times10^{-3}\)</span></td>
+<td>0.814</td>
 </tr>
 </tbody>
 </table>
@@ -6026,27 +6026,27 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tbody>
 <tr class="odd">
 <td>ID</td>
-<td>123.09</td>
-<td>1.862</td>
-<td>0.075</td>
+<td>129.97</td>
+<td>1.890</td>
+<td>0.116</td>
 </tr>
 <tr class="even">
 <td>TGUH</td>
-<td>124.55</td>
-<td>1.899</td>
+<td>119.72</td>
+<td>2.039</td>
 <td>0.062</td>
 </tr>
 <tr class="odd">
 <td>WBS</td>
-<td>101.24</td>
-<td>3.562</td>
-<td>0.031</td>
+<td>98.11</td>
+<td>3.314</td>
+<td>0.012</td>
 </tr>
 <tr class="even">
 <td>WBS2</td>
-<td>122.53</td>
-<td>1.945</td>
-<td>0.136</td>
+<td>122.13</td>
+<td>1.928</td>
+<td>0.165</td>
 </tr>
 </tbody>
 </table>
@@ -6081,15 +6081,15 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <td><strong>(NC1)</strong></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
-<td></td>
-<td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 </tr>
 <tr class="even">
 <td><strong>(NC2)</strong></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
-<td></td>
-<td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 </tr>
 <tr class="odd">
 <td><strong>(NC3)</strong></td>
@@ -6103,32 +6103,32 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <td><span class="math inline">\(\checkmark\)</span></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
-<td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 </tr>
 <tr class="odd">
 <td><strong>(M1)</strong></td>
 <td></td>
-<td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 <td></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 </tr>
 <tr class="even">
 <td><strong>(M2)</strong></td>
-<td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 <td></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 </tr>
 <tr class="odd">
 <td><strong>(M3)</strong></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 <td></td>
 <td></td>
-<td><span class="math inline">\(\checkmark\)</span></td>
-<td><span class="math inline">\(\checkmark\)</span></td>
+<td></td>
 </tr>
 <tr class="even">
 <td><strong>(M4)</strong></td>
-<td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 <td></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
@@ -6137,12 +6137,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <td><strong>(M5)</strong></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
-<td><span class="math inline">\(\checkmark\)</span></td>
+<td></td>
 <td></td>
 </tr>
 <tr class="even">
 <td><strong>(M6)</strong></td>
-<td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 <td></td>
 <td></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
@@ -6156,23 +6156,23 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </tr>
 <tr class="even">
 <td><strong>(M8)</strong></td>
-<td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 <td></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 </tr>
 <tr class="odd">
 <td><strong>(M9)</strong></td>
-<td></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
-<td></td>
-<td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 </tr>
 <tr class="even">
 <td><strong>(M10)</strong></td>
-<td></td>
-<td></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
+<td></td>
+<td></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 </tr>
 <tr class="odd">
@@ -6219,9 +6219,9 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </tr>
 <tr class="odd">
 <td><strong>(NC3)</strong></td>
-<td></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
-<td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 </tr>
 <tr class="even">
@@ -6262,8 +6262,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tr class="odd">
 <td><strong>(M5)</strong></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
-<td><span class="math inline">\(\checkmark\)</span></td>
 <td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 <td></td>
 </tr>
 <tr class="even">
@@ -6282,9 +6282,9 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </tr>
 <tr class="even">
 <td><strong>(M8)</strong></td>
-<td><span class="math inline">\(\checkmark\)</span></td>
-<td><span class="math inline">\(\checkmark\)</span></td>
 <td></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
+<td><span class="math inline">\(\checkmark\)</span></td>
 <td><span class="math inline">\(\checkmark\)</span></td>
 </tr>
 <tr class="odd">

@@ -20,7 +20,7 @@ model.thresh(
 \value{
 An S3 object of class \code{cptmodel}, which contains the following fields: 
 \item{solution.path}{The solution path method used to obtain \code{cptpath.object}}
-\item{model}{The model selection method used to return the final change-point estimators object, here its value is \code{"thresh"}}
+\item{model.selection}{The model selection method used to return the final change-point estimators object, here its value is \code{"thresh"}}
 \item{no.of.cpt}{The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
 \item{cpts}{The locations of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean intervals}
 \item{est}{An estimate of the piecewise-constant mean of the vector \code{cptpath.object$x}; the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points}

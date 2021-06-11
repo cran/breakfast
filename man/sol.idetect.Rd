@@ -24,19 +24,19 @@ An S3 object of class \code{cptpath}, which contains the following fields:
 \item{method}{The method used, which has value "idetect" here}
 }
 \description{
-This function arranges all possible change-points in the mean of the input vector in the order of importance, via the Isolate-Detect method.
+This function arranges all possible change-points in the mean of the input vector in the order of importance, via the Isolate-Detect (ID) method.
 It is developed to be used with the sdll and information criterion (ic) model selection rules.
 }
 \details{
 The Isolate-Detect method and its algorithm is described in 
-"Detecting multiple generalized change-points by isolating single ones", A. Anastasiou & P. Fryzlewicz (2019), arXiv preprint arXiv:1901.10852.
+"Detecting multiple generalized change-points by isolating single ones", A. Anastasiou & P. Fryzlewicz (2021), Metrika, https://doi.org/10.1007/s00184-021-00821-6.
 }
 \examples{
 r3 <- rnorm(1000) + c(rep(0,300), rep(2,200), rep(-4,300), rep(0,200))
 sol.idetect(r3)
 }
 \references{
-A. Anastasiou & P. Fryzlewicz (2019). Detecting multiple generalized change-points by isolating single ones. \emph{arXiv preprint arXiv:1901.10852}.
+A. Anastasiou & P. Fryzlewicz (2021). Detecting multiple generalized change-points by isolating single ones. \emph{Metrika}, https://doi.org/10.1007/s00184-021-00821-6.
 }
 \seealso{
 \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{sol.tguh}},

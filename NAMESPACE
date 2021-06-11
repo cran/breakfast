@@ -1,9 +1,16 @@
 import(Rcpp)
-importFrom(stats, mad, runif, ts.plot, var)
+importFrom(stats, mad, runif, ts.plot, var, frequency, sd)
+importFrom(grDevices, hcl)
+importFrom(ggplot2, aes_string, element_blank, geom_line, geom_point, ggplot, ggtitle,
+  guide_legend, guides, theme, theme_classic, xlab, xlim, ylab, ylim)
 export(sol.not, sol.wbs, sol.tguh, sol.wbs2, sol.idetect, sol.idetect_seq)
 export(model.thresh, model.ic, model.sdll, model.lp)
 export(breakfast)
+S3method(plot,breakfast.cpts)
+export(plot.breakfast.cpts)
 S3method(print,breakfast.cpts)
 export(print.breakfast.cpts)
+S3method(print,cptmodel)
+export(print.cptmodel)
 useDynLib(breakfast, .registration = TRUE)
 

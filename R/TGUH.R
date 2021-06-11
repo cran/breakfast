@@ -3,7 +3,7 @@
 #' @details 
 #' The Tail-Greedy Unbalanced Haar decomposition algorithm is described in 
 #' "Tail-greedy bottom-up data decompositions and fast multiple change-point 
-#' detection", P. Fryzlewicz (2018), The Annals of Statistics, 46: 3390--3421.
+#' detection", P. Fryzlewicz (2018), The Annals of Statistics, 46, 3390--3421.
 #'
 #' @param x A numeric vector containing the data to be processed
 #' @param p Specifies the number of region pairs merged 
@@ -18,19 +18,22 @@
 #' \item{cands}{Matrix of dimensions length(\code{x}) - 1 by 4. The first two columns are (start, end)-points of the detection intervals of the corresponding possible change-point location in the third column. The fourth column is a measure of strength of the corresponding possible change-point. The order of the rows is the same as the order returned in \code{solution.path}}
 #' \item{method}{The method used, which has value "tguh" here}
 #' @seealso \code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}
-#' @references P. Fryzlewicz (2018). Tail-greedy bottom-up data decompositions and fast multiple change-point detection. \emph{The Annals of Statistics}, 46(6B), 3390--3421.
+#' @references P. Fryzlewicz (2018). Tail-greedy bottom-up data decompositions and fast multiple change-point detection. \emph{The Annals of Statistics}, 46, 3390--3421.
 #' @examples
 #' r3 <- rnorm(1000) + c(rep(0,300), rep(2,200), rep(-4,300), rep(0,200))
 #' sol.tguh(r3)
 #' @export
 sol.tguh <- function(x, p = .01) {
-
+	
+	x <- as.numeric(x)
+	storage.mode(x) <- "double"
+	n <- length(x)
+	check.input(x)
+  
 	solutions.nested <- TRUE
 	
 	solution.set <- list()
-	
-	n <- length(x)
-	
+		
 	sorted.cusums <- matrix(NA, 0, 4)
 	
 	if (n <= 1) solution.path <- integer()

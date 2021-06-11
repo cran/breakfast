@@ -4,18 +4,22 @@
 \alias{print.breakfast.cpts}
 \title{Change-points estimated by breakfast}
 \usage{
-\method{print}{breakfast.cpts}(x, ...)
+\method{print}{breakfast.cpts}(x, by = c("method", "estimator"), ...)
 }
 \arguments{
 \item{x}{a \code{breakfast.cpts} object}
 
-\item{...}{not in use}
+\item{by}{if \code{by = 'method'}, change-point estimators are printed by method;
+if \code{by = 'estimator'}, each change-point estimator is printed with the methods that detect it.}
+
+\item{...}{current not in use}
 }
 \description{
 Print method for objects of class \code{breakfast.cpts}
 }
 \examples{
 f <- rep(rep(c(0, 1), each = 50), 5)
-x <- f + rnorm(length(f))
-print(breakfast(x, option = 'user'))
+x <- f + rnorm(length(f)) * .5
+print(breakfast(x, solution.path = 'all', model.selection = 'all'), by = 'method')
+print(breakfast(x), by = 'estimator')
 }

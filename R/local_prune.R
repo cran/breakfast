@@ -1,7 +1,7 @@
 #' @title Estimating change-points in the piecewise-constant mean of a noisy data sequence via the localised pruning
 #' @description This function estimates the number and locations of change-points in the piecewise-constant mean of a noisy data sequence via the localised pruning method, which performs a Schwarz criterion-based model selection on the given candidate set in a localised way.
 #' @details 
-#'  Further information can be found in Cho and Kirch (2020), arXiv preprint arXiv:1910.12486.
+#'  Further information can be found in Cho and Kirch (2021).
 #' 
 #' @param cptpath.object A solution-path object, returned by a \code{sol.[name]} routine. Note that the field \code{cptpath.object$x} contains the input data sequence. 
 #' @param min.d A number specifying the minimal spacing between change points; \code{min.d = 5} by default
@@ -16,23 +16,25 @@
 #' see \code{th.const} in \code{\link{model.sdll}}
 #' @return An S3 object of class \code{cptmodel}, which contains the following fields: 
 #' \item{solution.path}{The solution path method used to obtain \code{cptpath.object}}
-#' \item{model}{The model selection method used to return the final change-point estimators object, here its value is \code{"ip"}}
+#' \item{model.selection}{The model selection method used to return the final change-point estimators object, here its value is \code{"lp"}}
 #' \item{no.of.cpt}{The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
 #' \item{cpts}{The locations of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean intervals}
 #' \item{est}{An estimate of the piecewise-constant mean of the vector \code{cptpath.object$x}; the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points}
-#' @references H. Cho & C. Kirch (2020) Two-stage data segmentation permitting multiscale change points, heavy tails and dependence. \emph{arXiv preprint arXiv:1910.12486}.
+#' @references H. Cho & C. Kirch (2021) Two-stage data segmentation permitting multiscale change points, heavy tails and dependence. \emph{arXiv preprint arXiv:1910.12486}.
 #' @seealso \code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{breakfast}}
 #' @examples 
 #' f <- rep(rep(c(0, 1), each = 50), 10)
-#' x <- f + rnorm(length(f))
+#' x <- f + rnorm(length(f)) * .5
 #' model.lp(sol.not(x))
 #' @export
 model.lp <- function(cptpath.object, min.d = 5, 
-                   penalty = c('log', 'polynomial')[1], pen.exp = 1.01, 
+                   penalty = c('log', 'polynomial'), pen.exp = 1.01, 
                    do.thr = TRUE, th.const = .5){ 
   
-  if(class(cptpath.object) != 'cptpath') stop('object must be in cptpath class')
-  if(cptpath.object$method %in% c('idetect', 'idetect_seq')) warning("model.lp won't work well on cptpath.object produced with sol.idetect or sol.idetect_seq; consider using other model. functions, or produce your cptpath.object with a different sol. function")
+  if(class(cptpath.object) != "cptpath") stop("A cptmodel class object has to be supplied in the first argument.")
+  if(cptpath.object$method %in% c('idetect', 'idetect_seq')) warning(paste0("model.lp won't work well on cptpath.object produced with sol.idetect or sol.idetect_seq; consider using other model. functions, or produce your cptpath.object with a different sol. function"))
+  
+  penalty <- match.arg(penalty)
   
   x <- cptpath.object$x
   cands <- as.matrix(cptpath.object$cands)[, 1:4, drop = FALSE]
@@ -140,7 +142,7 @@ model.lp <- function(cptpath.object, min.d = 5,
   # final.bic <- n/2*log(min.cost/n) + penalty_term
   
   ret <- structure(list(solution.path = cptpath.object$method,
-                        model = 'lp',
+                        model.selection = 'lp',
                         no.of.cpt = length(est.cpts),
                         cpts = est.cpts, 
                         est = mean.from.cpt(x, est.cpts)), 

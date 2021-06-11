@@ -29,14 +29,14 @@ This function arranges all possible change-points in the mean of the input vecto
 \details{
 The Tail-Greedy Unbalanced Haar decomposition algorithm is described in 
 "Tail-greedy bottom-up data decompositions and fast multiple change-point 
-detection", P. Fryzlewicz (2018), The Annals of Statistics, 46: 3390--3421.
+detection", P. Fryzlewicz (2018), The Annals of Statistics, 46, 3390--3421.
 }
 \examples{
 r3 <- rnorm(1000) + c(rep(0,300), rep(2,200), rep(-4,300), rep(0,200))
 sol.tguh(r3)
 }
 \references{
-P. Fryzlewicz (2018). Tail-greedy bottom-up data decompositions and fast multiple change-point detection. \emph{The Annals of Statistics}, 46(6B), 3390--3421.
+P. Fryzlewicz (2018). Tail-greedy bottom-up data decompositions and fast multiple change-point detection. \emph{The Annals of Statistics}, 46, 3390--3421.
 }
 \seealso{
 \code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}

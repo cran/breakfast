@@ -50,130 +50,51 @@ all.slopechanges.are.cpts <- function(x) {
 
 
 random.cusums <- function(x, M, max.cusum.fun = max.cusum, seed = NULL) {
-	
-	  if(is.integer(seed)) set.seed(seed)
-
-	# M=0 means there is a single cusum that gets taken over [1,length(x)] and therefore we are in the standard BS setting
-
-
-	y <- c(0, cumsum(x))
-
-
-
-	n <- length(x)
-
-	
-
-	M <- min(M, (n-1)*n/2)
-
-		
-
-	res <- matrix(0, max(1, M), 4)
-
-	
-	if ((n==2) || (M == 0)) ind <- matrix(c(1, n), 2, 1)
-	
+	if(is.integer(seed)) set.seed(seed)
+  # M=0 means there is a single cusum that gets taken over [1,length(x)] and therefore we are in the standard BS setting
+  y <- c(0, cumsum(x))
+  n <- length(x)
+  M <- min(M, (n-1)*n/2)
+  res <- matrix(0, max(1, M), 4)
+  if ((n==2) || (M == 0)) ind <- matrix(c(1, n), 2, 1)
 	else if (M == (n-1)*n/2) {
-
-		ind <- matrix(0, 2, M)
-
-		ind[1,] <- rep(1:(n-1), (n-1):1)
-
-		ind[2,] <- 2:(M+1) - rep(cumsum(c(0, (n-2):1)), (n-1):1)
-
+	  ind <- matrix(0, 2, M)
+	  ind[1,] <- rep(1:(n-1), (n-1):1)
+	  ind[2,] <- 2:(M+1) - rep(cumsum(c(0, (n-2):1)), (n-1):1)
 	}
-
-	else {
-
-		ind <- ind2 <- matrix(floor(runif(2*M) * (n-1)), nrow=2)
-
-		ind2[1,] <- apply(ind, 2, min)
-
-		ind2[2,] <- apply(ind, 2, max)
-
-		ind <- ind2 + c(1, 2)
-
+  else {
+    ind <- ind2 <- matrix(floor(runif(2*M) * (n-1)), nrow=2)
+    ind2[1,] <- apply(ind, 2, min)
+    ind2[2,] <- apply(ind, 2, max)
+    ind <- ind2 + c(1, 2)
 	}
-
-
-
 	res[,1:2] <- t(ind)
-
 	res[,3:4] <- t(apply(ind, 2, max.cusum, y))
-
-
-
 	max.ind <- which.max(abs(res[,4]))
-
-
-
 	max.val <- res[max.ind,,drop=F]
-
-
-
 	list(res=res, max.val=max.val, M.eff=max(1, M))
-
 }
-
-
 
 
 systematic.cusums <- function(x, M) {
-  
-  
-  
   y <- c(0, cumsum(x))
-  
-  
-  
   n <- length(x)
-  
-  
-  
   M <- min(M, (n-1)*n/2)
-  
-  
-  
   ind <- grid.intervals(n, M)
-  
-  
-  
   M <- dim(ind)[2]
-  
-  
-  
   res <- matrix(0, M, 4)
-  
-  
-  
   res[,1:2] <- t(ind)
-  
   res[,3:4] <- t(apply(ind, 2, max.cusum, y))
-  
-  
-  
  # max.ind <- which.max(abs(res[,4]))
-  
   max.ind <- max.col(matrix(abs(res[,4]), 1, length(res[,4])))
-  
   max.val <- res[max.ind,,drop=F]
-  
-  
-  
   list(res=res, max.val=max.val, M.eff=M)
-  
-  
-  
 }
-
-
-
 
 
 
 
 max.cusum <- function(ind, y, min.d = 0) {
-  
   z <- y[(ind[1]+1):(ind[2]+1)] - y[ind[1]]
   m <- ind[2] - ind[1] + 1
   if(m >= 2*(min.d) + 2){
@@ -184,60 +105,108 @@ max.cusum <- function(ind, y, min.d = 0) {
     mv <- 0
     ip.max <- 1
   }
-  
   c(ip.max + ind[1] - 1, mv)
-
 }
 
 
 
-## for not, wbs
+wbs.K.int <- function(x, M, cusum.sampling) {
+  n <- length(x)
+  if (n == 1) return(matrix(NA, 4, 0))
+  else {
+    cpt <- t(cusum.sampling(x, M)$max.val)
+    return(cbind(cpt, wbs.K.int(x[1:cpt[3]], M, cusum.sampling), wbs.K.int(x[(cpt[3]+1):n], M, cusum.sampling) + c(rep(cpt[3], 3), 0)            ))
+  }
+}
+
+#wbs.K.int <- function(x, M) {
+# M = 0 means standard Binary Segmentation; M >= 1 means WBS2	
+#	n <- length(x)
+#	if (n == 1) return(matrix(NA, 4, 0))
+#	else {
+#		cpt <- t(random.cusums(x, M)$max.val)
+#		return(cbind(cpt, wbs.K.int(x[1:cpt[3]], M), wbs.K.int(x[(cpt[3]+1):n], M) + c(rep(cpt[3], 3), 0)            ))
+#	}
+#}
+
+
+
+
+mean.from.cpt <- function(x, cpt) {
+  n <- length(x)
+  len.cpt <- length(cpt)
+  if (len.cpt) cpt <- sort(cpt)
+  beg <- endd <- rep(0, len.cpt+1)
+  beg[1] <- 1
+  endd[len.cpt+1] <- n
+  if (len.cpt) {
+    beg[2:(len.cpt+1)] <- cpt+1
+    endd[1:len.cpt] <- cpt
+  }
+  means <- rep(0, len.cpt+1)
+  for (i in 1:(len.cpt+1)) means[i] <- mean(x[beg[i]:endd[i]])
+  rep(means, endd-beg+1)
+}
+
+
+all.intervals.flat <- function(n) {
+  if (n == 2) ind <- matrix(1:2, 2, 1) else {
+    M <- (n-1)*n/2	
+    ind <- matrix(0, 2, M)
+    ind[1,] <- rep(1:(n-1), (n-1):1)
+    ind[2,] <- 2:(M+1) - rep(cumsum(c(0, (n-2):1)), (n-1):1)
+  }
+  return(ind)
+}
+
+grid.intervals <- function(n, M) {
+  if (n==2) ind <- matrix(c(1, 2), 2, 1)
+  else if (M >= (n-1)*n/2) ind <- all.intervals.flat(n)
+  else {
+    k <- 1
+    while (k*(k-1)/2 < M) k <- k+1
+    ind2 <- all.intervals.flat(k)
+    ind2.mx <- max(ind2)
+    ind <- round((ind2 - 1) * ((n-1) / (ind2.mx-1)) + 1)
+  }	
+  return(ind)	
+}
+
+
+## for not, wbs - mostly follow the code from WBS2 in this version
 random.intervals <-	function(n, M, seed = NULL) {
   
   if(is.integer(seed)) set.seed(seed)
-  
   n <- as.integer(n)
   M <- as.integer(M)
   M <- min(M, (n-1)*n/2)
   
-  if ((n==2) || (M == 0)) intervals <- matrix(c(1, n), 2, 1)
+  #res <- matrix(0, max(1, M), 2)
+  if ((n==2) || (M == 0)) ind <- matrix(c(1, n), 2, 1)
   else if (M == (n-1)*n/2) {
-    intervals <- matrix(0, nrow = M, ncol = 2)
-    intervals[,1] <- rep(1:(n-1), (n-1):1)
-    intervals[,2] <- 2:(M+1) - rep(cumsum(c(0, (n-2):1)), (n-1):1)
+    ind <- matrix(0, 2, M)
+    ind[1,] <- rep(1:(n-1), (n-1):1)
+    ind[2,] <- 2:(M+1) - rep(cumsum(c(0, (n-2):1)), (n-1):1)
   }
-  else{
-    intervals <- matrix(0, nrow = M, ncol = 2)
-    intervals[,1] <- ceiling(runif(M)*(n - 1))
-    intervals[,2] <- intervals[, 1] + ceiling(runif(M)*(n - intervals[, 1]))
-    unique(intervals)
+  else {
+    ind <- ind2 <- matrix(floor(runif(2*M) * (n-1)), nrow=2)
+    ind2[1,] <- apply(ind, 2, min)
+    ind2[2,] <- apply(ind, 2, max)
+    ind <- ind2 + c(1, 2)
   }
-  return(intervals)
+  res <- t(ind)
+  return(res)
 }
-
-
 
 # same two functions for interval drawing as in wbs and not
 fixed.intervals <-function(n,M){
     n <- as.integer(n)
     M <- as.integer(M)
-    
-    m <- ceiling(0.5*(sqrt(8*M+1)+1))
-    m <- min(n,m)
-    M <- m*(m-1)/2
-    end.points <- round(c(1,seq.int(2,n-1,length.out=(m-2)),n))
-    intervals <- matrix(0,nrow=M,ncol=2)
-    
-    k <- 0;
-    for(i in 1:(m-1)){
-        tmp <- (m-i);
-        intervals[(k+1):(k+tmp),1] <- rep(end.points[i],tmp)
-        intervals[(k+1):(k+tmp),2] <- end.points[(i+1):m]
-        
-        k <- k+tmp;
-    }
-    
-    unique(intervals)
+    M <- min(M, (n-1)*n/2)
+    ind <- grid.intervals(n, M)
+    M <- dim(ind)[2]
+    res <- t(ind)
+    return(res)
 }
 
 # check input numermic

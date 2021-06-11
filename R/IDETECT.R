@@ -1,9 +1,9 @@
 #' @title Solution path generation via the Isolate-Detect method
-#' @description This function arranges all possible change-points in the mean of the input vector in the order of importance, via the Isolate-Detect method.
+#' @description This function arranges all possible change-points in the mean of the input vector in the order of importance, via the Isolate-Detect (ID) method.
 #' It is developed to be used with the sdll and information criterion (ic) model selection rules.
-#' @details 
+#' @details
 #' The Isolate-Detect method and its algorithm is described in 
-#' "Detecting multiple generalized change-points by isolating single ones", A. Anastasiou & P. Fryzlewicz (2019), arXiv preprint arXiv:1901.10852.
+#' "Detecting multiple generalized change-points by isolating single ones", A. Anastasiou & P. Fryzlewicz (2021), Metrika, https://doi.org/10.1007/s00184-021-00821-6.
 #' 
 #' @param x A numeric vector containing the data to be processed.
 #' @param thr_ic A positive real number with default value equal to 0.9. It is used to create the solution path. The lower the value, the larger the solution path vector.
@@ -17,16 +17,21 @@
 #' \item{cands}{Matrix of dimensions length(\code{x}) - 1 by 4. The first two columns are (start, end)-points of the detection intervals of the corresponding possible change-point location in the third column. The fourth column is a measure of strength of the corresponding possible change-point. The order of the rows is the same as the order returned in \code{solution.path}}
 #' \item{method}{The method used, which has value "idetect" here}
 #' @seealso \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{sol.tguh}}, 
-#' @references A. Anastasiou & P. Fryzlewicz (2019). Detecting multiple generalized change-points by isolating single ones. \emph{arXiv preprint arXiv:1901.10852}.
+#' @references A. Anastasiou & P. Fryzlewicz (2021). Detecting multiple generalized change-points by isolating single ones. \emph{Metrika}, https://doi.org/10.1007/s00184-021-00821-6.
 #' @examples
 #' r3 <- rnorm(1000) + c(rep(0,300), rep(2,200), rep(-4,300), rep(0,200))
 #' sol.idetect(r3)
 #' @export
 sol.idetect <- function(x, thr_ic = 0.9, points = 3) {
+  #veryfing the input parameters - x
+  x <- as.numeric(x)
+  storage.mode(x) <- "double"
+  lx <- length(x)
+  check.input(x)
+  
   solutions.nested <- TRUE
   solution.set <- list()
   cands <- matrix(NA, 0, 4)
-  lx <- length(x)
   if (lx < points) {solution.path <- integer()}
   else{
     points <- as.integer(points)

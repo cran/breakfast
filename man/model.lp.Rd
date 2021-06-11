@@ -7,7 +7,7 @@
 model.lp(
   cptpath.object,
   min.d = 5,
-  penalty = c("log", "polynomial")[1],
+  penalty = c("log", "polynomial"),
   pen.exp = 1.01,
   do.thr = TRUE,
   th.const = 0.5
@@ -34,7 +34,7 @@ see \code{th.const} in \code{\link{model.sdll}}}
 \value{
 An S3 object of class \code{cptmodel}, which contains the following fields: 
 \item{solution.path}{The solution path method used to obtain \code{cptpath.object}}
-\item{model}{The model selection method used to return the final change-point estimators object, here its value is \code{"ip"}}
+\item{model.selection}{The model selection method used to return the final change-point estimators object, here its value is \code{"lp"}}
 \item{no.of.cpt}{The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
 \item{cpts}{The locations of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean intervals}
 \item{est}{An estimate of the piecewise-constant mean of the vector \code{cptpath.object$x}; the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points}
@@ -43,15 +43,15 @@ An S3 object of class \code{cptmodel}, which contains the following fields:
 This function estimates the number and locations of change-points in the piecewise-constant mean of a noisy data sequence via the localised pruning method, which performs a Schwarz criterion-based model selection on the given candidate set in a localised way.
 }
 \details{
-Further information can be found in Cho and Kirch (2020), arXiv preprint arXiv:1910.12486.
+Further information can be found in Cho and Kirch (2021).
 }
 \examples{
 f <- rep(rep(c(0, 1), each = 50), 10)
-x <- f + rnorm(length(f))
+x <- f + rnorm(length(f)) * .5
 model.lp(sol.not(x))
 }
 \references{
-H. Cho & C. Kirch (2020) Two-stage data segmentation permitting multiscale change points, heavy tails and dependence. \emph{arXiv preprint arXiv:1910.12486}.
+H. Cho & C. Kirch (2021) Two-stage data segmentation permitting multiscale change points, heavy tails and dependence. \emph{arXiv preprint arXiv:1910.12486}.
 }
 \seealso{
 \code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{breakfast}}

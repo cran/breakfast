@@ -4,19 +4,19 @@
 \alias{sol.wbs2}
 \title{Solution path generation via the Wild Binary Segmentation 2 method}
 \usage{
-sol.wbs2(x, M = 100, cusums = "systematic")
+sol.wbs2(x, M = 1000, systematic.intervals = TRUE)
 }
 \arguments{
 \item{x}{A numeric vector containing the data to be processed.}
 
 \item{M}{The maximum number of data sub-samples drawn at each recursive stage of the algorithm. The default is
-\code{M = 100}. Setting \code{M = 0} executes the standard binary segmentation.}
+\code{M = 1000}. Setting \code{M = 0} executes the standard binary segmentation.}
 
-\item{cusums}{Whether data sub-intervals for CUSUM computation are drawn systematically (start- and end-points taken from an approximately equispaced grid) or randomly (obtained uniformly with replacement). Use "systematic" (default) or "random".}
+\item{systematic.intervals}{Whether data sub-intervals for CUSUM computation are drawn systematically (TRUE; start- and end-points taken from an approximately equispaced grid) or randomly (FALSE; obtained uniformly with replacement). The default is TRUE.}
 }
 \value{
 An S3 object of class \code{cptpath}, which contains the following fields: 
-\item{solutions.nested}{\code{TRUE}, i.e., the change-point outputs are nested}
+\item{solutions.nested}{\code{TRUE}, i.e., the change-point outputs are nested}fmax
 \item{solution.path}{Locations of possible change-points in the mean of \code{x}, arranged in decreasing order of change-point importance}
 \item{solution.set}{Empty list}
 \item{x}{Input vector \code{x}}
@@ -29,14 +29,14 @@ This function arranges all possible change-points in the mean of the input vecto
 }
 \details{
 The Wild Binary Segmentation 2 algorithm is described in 
-"Detecting possibly frequent change-points: Wild Binary Segmentation 2 and steepest-drop model selection", P. Fryzlewicz (2020), Journal of the Korean Statistical Society, to appear.
+"Detecting possibly frequent change-points: Wild Binary Segmentation 2 and steepest-drop model selection", P. Fryzlewicz (2020), Journal of the Korean Statistical Society, 49, 1027-1070.
 }
 \examples{
 r3 <- rnorm(1000) + c(rep(0,300), rep(2,200), rep(-4,300), rep(0,200))
 sol.wbs2(r3)
 }
 \references{
-P. Fryzlewicz (2020). Detecting possibly frequent change-points: Wild Binary Segmentation 2 and steepest-drop model selection. \emph{Journal of the Korean Statistical Society (to appear)}.
+P. Fryzlewicz (2020). Detecting possibly frequent change-points: Wild Binary Segmentation 2 and steepest-drop model selection. \emph{Journal of the Korean Statistical Society}, 49, 1027-1070.
 }
 \seealso{
 \code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}}

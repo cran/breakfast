@@ -4,7 +4,7 @@
 \alias{sol.not}
 \title{Solution path generation via the Narrowest-Over-Threshold method}
 \usage{
-sol.not(x, M = 10000, rand.intervals = TRUE, seed = NULL)
+sol.not(x, M = 10000, systematic.intervals = TRUE, seed = NULL)
 }
 \arguments{
 \item{x}{A numeric vector containing the data to be processed}
@@ -12,7 +12,7 @@ sol.not(x, M = 10000, rand.intervals = TRUE, seed = NULL)
 \item{M}{The maximum number of all data sub-samples at the beginning of the algorithm. The default is
 \code{M = 10000}}
 
-\item{rand.intervals}{When drawing the sub-intervals, whether to use a random or a fixed scheme. The default is \code{rand.intervals = TRUE}}
+\item{systematic.intervals}{When drawing the sub-intervals, whether to use a systematic (and fixed) or random scheme. The default is \code{systematic.intervals = TRUE}}
 
 \item{seed}{If a random scheme is used, a random seed can be provided so that every time the same sets of random sub-intervals would be drawn. The default is \code{seed = NULL}, which means that this option is not taken}
 }

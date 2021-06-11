@@ -11,12 +11,12 @@ model.ic(cptpath.object, alpha = 1.01, q.max = NULL)
 
 \item{alpha}{The parameter associated with the sSIC. The default value is 1.01. Note that the SIC is recovered when alpha = 1.}
 
-\item{q.max}{The maximum number of change-points allowed. If nothing or \code{NULL} is provided, the default value of around \code{min(25, n/log(n))} will be used.}
+\item{q.max}{The maximum number of change-points allowed. If nothing or \code{NULL} is provided, the default value of \code{min(100, n/log(n))} (rounded to an integer) will be used.}
 }
 \value{
 An S3 object of class \code{cptmodel}, which contains the following fields: 
 \item{solution.path}{The solution path method used to obtain \code{cptpath.object}}
-\item{model}{The model selection method used to return the final change-point estimators object, here its value is \code{"ic"}}
+\item{model.selection}{The model selection method used to return the final change-point estimators object, here its value is \code{"ic"}}
 \item{no.of.cpt}{The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
 \item{cpts}{The locations of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean intervals}
 \item{est}{An estimate of the piecewise-constant mean of the vector \code{cptpath.object$x}; the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points}

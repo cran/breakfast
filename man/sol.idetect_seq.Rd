@@ -22,19 +22,19 @@ An S3 object of class \code{cptpath}, which contains the following fields:
 \item{method}{The method used, which has value "idetect_seq" here}
 }
 \description{
-This function uses the Isolate-Detect method in its original sequential way in order to create the solution path.
-It is developed to be used with the thresholding model selection rule.
+This function uses the Isolate-Detect method in its original sequential way in order to create
+the solution path. It is developed to be used with the thresholding model selection rule.
 }
 \details{
 The Isolate-Detect method and its algorithm is described in 
-"Detecting multiple generalized change-points by isolating single ones", A. Anastasiou & P. Fryzlewicz (2019), arXiv preprint arXiv:1901.10852.
+"Detecting multiple generalized change-points by isolating single ones", A. Anastasiou & P. Fryzlewicz (2021), Metrika, https://doi.org/10.1007/s00184-021-00821-6.
 }
 \examples{
 r3 <- rnorm(1000) + c(rep(0,300), rep(2,200), rep(-4,300), rep(0,200))
 sol.idetect_seq(r3)
 }
 \references{
-A. Anastasiou & P. Fryzlewicz (2019). Detecting multiple generalized change-points by isolating single ones. \emph{arXiv preprint arXiv:1901.10852}.
+A. Anastasiou & P. Fryzlewicz (2021). Detecting multiple generalized change-points by isolating single ones. \emph{Metrika}, https://doi.org/10.1007/s00184-021-00821-6.
 }
 \seealso{
 \code{\link{sol.idetect}}, \code{\link{sol.not}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{sol.tguh}},

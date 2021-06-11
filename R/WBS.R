@@ -7,7 +7,7 @@
 #' @param x A numeric vector containing the data to be processed
 #' @param M The maximum number of all data sub-samples at the beginning of the algorithm. The default is
 #' \code{M = 10000}
-#' @param rand.intervals When drawing the sub-intervals, whether to use a random or a fixed scheme. The default is \code{rand.intervals = TRUE}
+#' @param systematic.intervals When drawing the sub-intervals, whether to use a systematic (and fixed) or random scheme. The default is \code{systematic.intervals = TRUE}
 #' @param seed If a random scheme is used, a random seed can be provided so that every time the same sets of random sub-intervals would be drawn. The default is \code{seed = NULL}, which means that this option is not taken
 #' @return An S3 object of class \code{cptpath}, which contains the following fields: 
 #' \item{solutions.nested}{\code{TRUE}, i.e., the change-point outputs are nested}
@@ -23,7 +23,7 @@
 #' r3 <- rnorm(1000) + c(rep(0,300), rep(2,200), rep(-4,300), rep(0,200))
 #' sol.wbs(r3)
 #' @export
-sol.wbs <- function(x, M=10000, rand.intervals = TRUE, seed = NULL){
+sol.wbs <- function(x, M=10000, systematic.intervals = TRUE, seed = NULL){
   
   #veryfing the input parameters - x
   x <- as.numeric(x)
@@ -37,11 +37,11 @@ sol.wbs <- function(x, M=10000, rand.intervals = TRUE, seed = NULL){
   if(length(M)> 1)  stop("M should be a single integer.")
   if(M<0)  stop("M should be an integer > 0.")
 
-  #veryfing the input parameters - rand.intervals
-  rand.intervals <- as.logical(rand.intervals)
+  #veryfing the input parameters - systematic.intervals 
+  systematic.intervals  <- as.logical(systematic.intervals)
   
   #drawing the intervals over which the contrast function will be computed
-  if(rand.intervals) intervals <-  matrix(random.intervals(n,M,seed),ncol=2)
+  if(!(systematic.intervals)) intervals <-  matrix(random.intervals(n,M,seed),ncol=2)
   else {
     intervals <- matrix(fixed.intervals(n,M),ncol=2)
   }
