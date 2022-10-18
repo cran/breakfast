@@ -24,7 +24,7 @@
 #' model.sdll(sol.wbs2(x))
 model.sdll <- function(cptpath.object, sigma = stats::mad(diff(cptpath.object$x)/sqrt(2)), universal = TRUE, th.const = NULL, th.const.min.mult = 0.3, lambda = 0.9) {
 
-  if(class(cptpath.object) != "cptpath") stop("A cptmodel class object has to be supplied in the first argument.")
+  if(!("cptpath" %in%  class(cptpath.object))) stop("A cptmodel class object has to be supplied in the first argument.")
   
 	x <- cptpath.object$x
 

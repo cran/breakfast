@@ -1,6 +1,6 @@
 Package: breakfast
 Title: Methods for Fast Multiple Change-Point Detection and Estimation
-Version: 2.2
+Version: 2.3
 Authors@R: c(
     person("Andreas", "Anastasiou", email = "anastasiou.andreas@ucy.ac.cy", role = "aut"),
     person("Yining", "Chen", email = "y.chen101@lse.ac.uk", role = c("aut", "cre")),
@@ -16,11 +16,11 @@ Suggests: testthat, knitr, rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1
 NeedsCompilation: yes
-Packaged: 2021-06-11 18:49:37 UTC; chen
+Packaged: 2022-10-18 11:37:17 UTC; chen
 Author: Andreas Anastasiou [aut],
   Yining Chen [aut, cre],
   Haeran Cho [aut],
   Piotr Fryzlewicz [aut]
 Maintainer: Yining Chen <y.chen101@lse.ac.uk>
 Repository: CRAN
-Date/Publication: 2021-06-11 19:20:02 UTC
+Date/Publication: 2022-10-18 13:45:08 UTC

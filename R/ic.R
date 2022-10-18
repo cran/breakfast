@@ -27,7 +27,7 @@ model.ic <- function(cptpath.object, alpha=1.01, q.max = NULL) {
     ret <- list()
     class(ret) <- "cptmodel"
     
-    if(class(cptpath.object)!="cptpath") stop("A cptmodel class object has to be supplied in the first argument.")
+    if(!("cptpath" %in%  class(cptpath.object))) stop("A cptmodel class object has to be supplied in the first argument.")
     if(cptpath.object$method == 'idetect_seq') warning('To get the Isolate-Detect method results when the model selection is "ic"
                                                         we recommend that you use sol.idetect to create the cptpath.object instead of
                                                         sol.idetect_seq')

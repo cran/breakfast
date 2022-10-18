@@ -30,8 +30,7 @@
 model.lp <- function(cptpath.object, min.d = 5, 
                    penalty = c('log', 'polynomial'), pen.exp = 1.01, 
                    do.thr = TRUE, th.const = .5){ 
-  
-  if(class(cptpath.object) != "cptpath") stop("A cptmodel class object has to be supplied in the first argument.")
+  if(!("cptpath" %in%  class(cptpath.object))) stop("A cptmodel class object has to be supplied in the first argument.")
   if(cptpath.object$method %in% c('idetect', 'idetect_seq')) warning(paste0("model.lp won't work well on cptpath.object produced with sol.idetect or sol.idetect_seq; consider using other model. functions, or produce your cptpath.object with a different sol. function"))
   
   penalty <- match.arg(penalty)

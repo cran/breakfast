@@ -17,7 +17,7 @@
 #' model.thresh(sol.idetect_seq(x))
 #' @export
 model.thresh <- function(cptpath.object,  sigma = stats::mad(diff(cptpath.object$x)/ sqrt(2)), th_const = 1.15){
-  if(class(cptpath.object) != 'cptpath') stop("A cptmodel class object has to be supplied in the first argument.")
+  if(!("cptpath" %in%  class(cptpath.object))) stop("A cptmodel class object has to be supplied in the first argument.")
   
   x <- cptpath.object$x
   lx <- length(x)
