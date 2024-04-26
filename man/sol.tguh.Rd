@@ -4,10 +4,12 @@
 \alias{sol.tguh}
 \title{Solution path generation via the Tail-Greedy Unbalanced Haar method}
 \usage{
-sol.tguh(x, p = 0.01)
+sol.tguh(x, type = "const", p = 0.01)
 }
 \arguments{
 \item{x}{A numeric vector containing the data to be processed}
+
+\item{type}{The model type considered. \code{type = "const"} means piecewise-constant; this is the only type currently supported in \code{sol.tguh}}
 
 \item{p}{Specifies the number of region pairs merged 
 in each pass through the data, as the proportion of all remaining region pairs. The default is
@@ -19,7 +21,8 @@ An S3 object of class \code{cptpath}, which contains the following fields:
 \item{solution.path}{Locations of possible change-points in the mean of \code{x}, arranged in decreasing order of change-point importance}
 \item{solution.set}{Empty list}
 \item{x}{Input vector \code{x}}
-\item{M}{Input parameter \code{M}}
+\item{type}{Input parameter \code{type}}
+\item{p}{Input parameter \code{p}}
 \item{cands}{Matrix of dimensions length(\code{x}) - 1 by 4. The first two columns are (start, end)-points of the detection intervals of the corresponding possible change-point location in the third column. The fourth column is a measure of strength of the corresponding possible change-point. The order of the rows is the same as the order returned in \code{solution.path}}
 \item{method}{The method used, which has value "tguh" here}
 }

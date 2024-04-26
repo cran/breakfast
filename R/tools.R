@@ -1,4 +1,4 @@
-#' @title Change-points estimated by breakfast
+#' @title Change-points estimated by the "breakfast" routine
 #' @description  Print method for objects of class \code{breakfast.cpts}
 #' @method print breakfast.cpts
 #' @param x a \code{breakfast.cpts} object
@@ -14,6 +14,8 @@
 print.breakfast.cpts <- function(x, by = c('method', 'estimator'), ...) {
   
   L <- length(x$cptmodel.list)
+  if(L == 0) stop('No change point analysis is performed')
+    
   by <- match.arg(by, choices = c('method', 'estimator'))
   
   if(by == 'method'){
@@ -89,7 +91,7 @@ print.cptmodel <- function(x, ...) {
 }
 
 
-#' @title Change-points estimated by breakfast
+#' @title Change-points estimated by the "breakfast" routine
 #' @description Plot method for objects of class \code{breakfast.cpts}
 #' @method plot breakfast.cpts
 #' @param x a \code{breakfast.cpts} object

@@ -1,18 +1,18 @@
 #' @title Estimating change-points in the piecewise-constant mean of a noisy data sequence via the localised pruning
 #' @description This function estimates the number and locations of change-points in the piecewise-constant mean of a noisy data sequence via the localised pruning method, which performs a Schwarz criterion-based model selection on the given candidate set in a localised way.
 #' @details 
-#'  Further information can be found in Cho and Kirch (2021).
+#'  Further information can be found in Cho and Kirch (2022).
 #' 
 #' @param cptpath.object A solution-path object, returned by a \code{sol.[name]} routine. Note that the field \code{cptpath.object$x} contains the input data sequence. 
 #' @param min.d A number specifying the minimal spacing between change points; \code{min.d = 5} by default
-#' @param penalty A string specifying the type of penalty term to be used in Schwarz criterion; possible values are:
-#' \itemize{
-#'    \item{\code{"log"}}{ Use \code{penalty = log(length(x))^pen.exp}}
-#'    \item{\code{"polynomial"}}{ Use \code{penalty = length(x)^pen.exp}}
+#' @param penalty A string specifying the type of penalty term to be used in Schwarz criterion; possible values are: 
+#' \describe{
+#'    \item{\code{"log"}}{Use \code{penalty = log(length(x))^pen.exp}}
+#'    \item{\code{"polynomial"}}{Use \code{penalty = length(x)^pen.exp}}
 #' }
 #' @param pen.exp Exponent for the penalty term (see \code{penalty})
 #' @param do.thr If \code{do.thr = TRUE}, mild threshoding on the CUSUM test statistics is performed after internal standardisation step in order to "pre-prune down" the candidates
-#' @param th.const A constant multiplied to \code{sqrt(2*log(length(x)))} to form a mild threshold; if not supplied, a default value (\code{0.5*} a value suggested in Fryzlewicz (2020) is used,
+#' @param th.const A constant multiplied to \code{sqrt(2*log(length(x)))} to form a mild threshold; if not supplied, a default value (\code{0.5*} the value suggested in Fryzlewicz (2020)) is used,
 #' see \code{th.const} in \code{\link{model.sdll}}
 #' @return An S3 object of class \code{cptmodel}, which contains the following fields: 
 #' \item{solution.path}{The solution path method used to obtain \code{cptpath.object}}
@@ -20,7 +20,7 @@
 #' \item{no.of.cpt}{The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
 #' \item{cpts}{The locations of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean intervals}
 #' \item{est}{An estimate of the piecewise-constant mean of the vector \code{cptpath.object$x}; the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points}
-#' @references H. Cho & C. Kirch (2021) Two-stage data segmentation permitting multiscale change points, heavy tails and dependence. \emph{arXiv preprint arXiv:1910.12486}.
+#' @references H. Cho & C. Kirch (2022) Two-stage data segmentation permitting multiscale change points, heavy tails and dependence. \emph{Annals of the Institute of Statistical Mathematics}, 74(4), 653--684.
 #' @seealso \code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{breakfast}}
 #' @examples 
 #' f <- rep(rep(c(0, 1), each = 50), 10)
@@ -30,7 +30,10 @@
 model.lp <- function(cptpath.object, min.d = 5, 
                    penalty = c('log', 'polynomial'), pen.exp = 1.01, 
                    do.thr = TRUE, th.const = .5){ 
+  
+  
   if(!("cptpath" %in%  class(cptpath.object))) stop("A cptmodel class object has to be supplied in the first argument.")
+  if(cptpath.object$type != 'const') stop("Currently, model.lp only supports the piecewise constant model type")
   if(cptpath.object$method %in% c('idetect', 'idetect_seq')) warning(paste0("model.lp won't work well on cptpath.object produced with sol.idetect or sol.idetect_seq; consider using other model. functions, or produce your cptpath.object with a different sol. function"))
   
   penalty <- match.arg(penalty)
@@ -57,10 +60,11 @@ model.lp <- function(cptpath.object, min.d = 5,
   
   if(nrow(cands) == 0){
     ret <- structure(list(solution.path = cptpath.object$method,
-                          model = 'lp',
+                          type = cptpath.object$type,
+                          model.selection = 'lp',
                           no.of.cpt = 0,
                           cpts = integer(0), 
-                          est = mean.from.cpt(x, integer(0))),
+                          est = mean_from_cpt(x, integer(0))),
                      class = 'cptmodel')
     return(ret)
   }
@@ -75,13 +79,14 @@ model.lp <- function(cptpath.object, min.d = 5,
   
   if(nrow(tmp) == 0){
     ret <- structure(list(solution.path = cptpath.object$method,
-                          model = 'lp',
+                          type = cptpath.object$type,
+                          model.selection = 'lp',
                           no.of.cpt = 0,
                           cpts = integer(0), 
-                          est = mean.from.cpt(x, integer(0))),
+                          est = mean_from_cpt(x, integer(0))),
                      class = 'cptmodel')
     return(ret)
-  }
+    }
   
   tmp <- cbind(tmp, t(apply(cands, 1, function(z){
     if(z[1] > 1) denom <- cs2[z[3]] - cs2[z[1] - 1] - (cs1[z[3]] - cs1[z[1] - 1])^2/(z[3] - z[1] + 1) else denom <- cs2[z[3]] - cs1[z[3]]^2/z[3]
@@ -93,10 +98,11 @@ model.lp <- function(cptpath.object, min.d = 5,
 
   if(nrow(tmp) == 0){
     ret <- structure(list(solution.path = cptpath.object$method,
-                          model = 'lp',
+                          type = cptpath.object$type,
+                          model.selection = 'lp',
                           no.of.cpt = 0,
                           cpts = integer(0), 
-                          est = mean.from.cpt(x, integer(0))),
+                          est = mean_from_cpt(x, integer(0))),
                      class = 'cptmodel')
     return(ret)
   }
@@ -109,10 +115,11 @@ model.lp <- function(cptpath.object, min.d = 5,
   
   if(nrow(tmp) == 0){
     ret <- structure(list(solution.path = cptpath.object$method,
-                          model = 'lp',
+                          type = cptpath.object$type,
+                          model.selection = 'lp',
                           no.of.cpt = 0,
                           cpts = integer(0), 
-                          est = mean.from.cpt(x, integer(0))),
+                          est = mean_from_cpt(x, integer(0))),
                      class = 'cptmodel')
     return(ret)
   }
@@ -139,18 +146,19 @@ model.lp <- function(cptpath.object, min.d = 5,
   #   penalty_term <- length(est.cpts)*n^pen.exp
   # }
   # final.bic <- n/2*log(min.cost/n) + penalty_term
-  
   ret <- structure(list(solution.path = cptpath.object$method,
+                        type = cptpath.object$type,
                         model.selection = 'lp',
                         no.of.cpt = length(est.cpts),
                         cpts = est.cpts, 
-                        est = mean.from.cpt(x, est.cpts)), 
+                        est = mean_from_cpt(x, est.cpts)), 
                    class = 'cptmodel')
   return(ret)
 }
 
 #' Removes duplicates from the candidate set
 #' @keywords internal
+#' @noRd
 dup.merge <- function(cands){
   
   all.unique.cpts <- unique(cands[, 3])

@@ -7,6 +7,7 @@ using namespace std;
 //' based on bool-field representation of combinations.
 //' E.g. for combination index 11 [=1011]: get_comb_ind(c(T,F,T,T))=11
 //' @keywords internal
+//' @noRd
 // [[Rcpp::export]]
 unsigned get_comb_ind(const std::vector<bool> &active) {
   const unsigned m = active.size();
@@ -23,6 +24,7 @@ unsigned get_comb_ind(const std::vector<bool> &active) {
 //' between the (sorted) candidates k_i and k_{i+1} in cand.
 //' Output: data frame with 4 columns k_i | k_{i+1} | S_i | T_i
 //' @keywords internal
+//' @noRd
 // [[Rcpp::export]]
 NumericMatrix extract_sub(const IntegerVector &cand, const NumericVector &x) {
   const unsigned m = cand.length();
@@ -52,7 +54,7 @@ NumericMatrix extract_sub(const IntegerVector &cand, const NumericVector &x) {
 //' over all bit permutaions having l bits set to 1.
 //' E.g.: start_bit_permutations(2) = 3 [=0..011].
 //' @keywords internal
-// [[Rcpp::export]]
+//' @noRd
 unsigned start_bit_permutations(unsigned l) {
   return (1 << l) - 1;
 }
@@ -62,7 +64,7 @@ unsigned start_bit_permutations(unsigned l) {
 //' Example sequence (2 bits): {0011, 0101, 0110, 1001, 1010, 1100}.
 //' Source: https://stackoverflow.com/questions/1851134/generate-all-binary-strings-of-length-n-with-k-bits-set
 //' @keywords internal
-// [[Rcpp::export]]
+//' @noRd
 unsigned next_bit_permutation(unsigned v) {
   // Note: The following (commented) alternative is faster on Unix machines:
   // unsigned int t = v | (v - 1);
@@ -76,7 +78,7 @@ unsigned next_bit_permutation(unsigned v) {
 //' ASSERT: i_child is of the form (i_parent XOR i_help),
 //'         with i_help having exactly one non-zero bit
 //' @keywords internal
-// [[Rcpp::export]]
+//' @noRd
 bool is_child(unsigned i_child, unsigned i_parent) {
   return (i_child < i_parent);
 }
@@ -84,7 +86,7 @@ bool is_child(unsigned i_child, unsigned i_parent) {
 //' Get number of non-zero bits of a 32bit integer
 //' Source: https://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
 //' @keywords internal
-// [[Rcpp::export]]
+//' @noRd
 unsigned numberOfSetBits(uint32_t i) {
   i = i - ((i >> 1) & 0x55555555);
   i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
@@ -93,7 +95,7 @@ unsigned numberOfSetBits(uint32_t i) {
 
 //' Does the combination comb of changepoints contain the changepoint k_ind?
 //' @keywords internal
-// [[Rcpp::export]]
+//' @noRd
 bool comb_contains_cpt(unsigned comb, unsigned k_ind) {
   return comb & (1 << k_ind);
 }
@@ -101,7 +103,7 @@ bool comb_contains_cpt(unsigned comb, unsigned k_ind) {
 //' Compute the Local cost terms of combination icomb (for RSS resp. sBIC).
 //' Use pre-computed partial sum matrix sub_sums (see extract_sub) for speedup
 //' @keywords internal
-// [[Rcpp::export]]
+//' @noRd
 double get_local_costs(unsigned icomb, const NumericMatrix &sub_sums) {
   const unsigned m = sub_sums.nrow() - 1;
   double res = 0.0;
@@ -125,7 +127,7 @@ double get_local_costs(unsigned icomb, const NumericMatrix &sub_sums) {
 //' where is leftmost one?
 //' https://www.geeksforgeeks.org/find-significant-set-bit-number/
 //' @keywords internal
-// [[Rcpp::export]]
+//' @noRd
 int setBitNumber(int n) 
 { 
   // Below steps set bits after 
@@ -177,6 +179,7 @@ int setBitNumber(int n)
 //' Output final: Bool Vector indicating if combinations are final states
 //' Output num_cpts: For debugging purposes
 //' @keywords internal
+//' @noRd
 // [[Rcpp::export]]
 List exhaust_sc(const IntegerVector &cand,
                 const NumericMatrix &sub_sums,

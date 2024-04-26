@@ -4,22 +4,27 @@
 \alias{sol.wbs2}
 \title{Solution path generation via the Wild Binary Segmentation 2 method}
 \usage{
-sol.wbs2(x, M = 1000, systematic.intervals = TRUE)
+sol.wbs2(x, type = "const", M = 1000, systematic.intervals = TRUE, seed = NULL)
 }
 \arguments{
 \item{x}{A numeric vector containing the data to be processed.}
+
+\item{type}{The model type considered. \code{type = "const"} means piecewise-constant; this is the only type currently supported in \code{sol.wbs2}}
 
 \item{M}{The maximum number of data sub-samples drawn at each recursive stage of the algorithm. The default is
 \code{M = 1000}. Setting \code{M = 0} executes the standard binary segmentation.}
 
 \item{systematic.intervals}{Whether data sub-intervals for CUSUM computation are drawn systematically (TRUE; start- and end-points taken from an approximately equispaced grid) or randomly (FALSE; obtained uniformly with replacement). The default is TRUE.}
+
+\item{seed}{If a random scheme is used, a random seed can be provided so that every time the same sets of random sub-intervals would be drawn. The default is \code{seed = NULL}, which means that this option is not set}
 }
 \value{
 An S3 object of class \code{cptpath}, which contains the following fields: 
-\item{solutions.nested}{\code{TRUE}, i.e., the change-point outputs are nested}fmax
+\item{solutions.nested}{\code{TRUE}, i.e., the change-point outputs are nested}
 \item{solution.path}{Locations of possible change-points in the mean of \code{x}, arranged in decreasing order of change-point importance}
 \item{solution.set}{Empty list}
 \item{x}{Input vector \code{x}}
+\item{type}{Input parameter \code{type}}
 \item{M}{Input parameter \code{M}}
 \item{cands}{Matrix of dimensions length(\code{x}) - 1 by 4. The first two columns are (start, end)-points of the detection intervals of the corresponding possible change-point location in the third column. The fourth column is a measure of strength of the corresponding possible change-point. The order of the rows is the same as the order returned in \code{solution.path}}
 \item{method}{The method used, which has value "wbs2" here}

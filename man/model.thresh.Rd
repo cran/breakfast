@@ -2,31 +2,33 @@
 % Please edit documentation in R/thresholding.R
 \name{model.thresh}
 \alias{model.thresh}
-\title{Estimating change-points in the piecewise-constant mean of a noisy data sequence via thresholding}
+\title{Estimating change-points in the piecewise-constant or piecewise-linear mean of a noisy data sequence via thresholding}
 \usage{
-model.thresh(
-  cptpath.object,
-  sigma = stats::mad(diff(cptpath.object$x)/sqrt(2)),
-  th_const = 1.15
-)
+model.thresh(cptpath.object, sigma = NULL, th.const = NULL)
 }
 \arguments{
-\item{cptpath.object}{A solution-path object, returned by a \code{sol.[name]} routine. Note that the field \code{sols.object$x} contains the input data sequence.}
+\item{cptpath.object}{A solution-path object, returned by a \code{sol.[name]} routine. The \code{cptpath.object$type} variable decides the model type: piecewise-constant (\code{type == "const"}),
+piecewise-linear and continuous (\code{type == "lin.cont"}) or piecewise-linear and discontinuous (\code{type == "lin.discont"}). In the piecewise-linear model (whether continuous or not), the output of \code{sol.idetect_seq} or \code{sol.not} should be supplied as
+\code{cptpath.object}. Note that the field \code{cptpath.object$x} contains the input data sequence.}
 
-\item{sigma}{An estimate of the standard deviation of the noise in the data \code{cptpath.object$x}. Can be a functional of \code{cptpath.object$x} or a specific value if known. The default is the Median Absolute Deviation of the vector \code{diff(cptpath.object$x)/sqrt(2)}, tuned to the Gaussian distribution. Note that \code{model.thresh} works particularly well when the noise is i.i.d. Gaussian.}
+\item{sigma}{An estimate of the standard deviation of the noise in the data \code{cptpath.object$x}. Can be a functional of \code{cptpath.object$x} or a specific value if known.
+The default in the piecewise-constant model is the Median Absolute Deviation of the vector \code{diff(cptpath.object$x)/sqrt(2)}, tuned to the Gaussian distribution.
+In the piecewise-linear models, \code{diff(cptpath.object$x, differences = 2)/sqrt(6)} is used by default.
+Note that \code{model.thresh} works particularly well when the noise is i.i.d. Gaussian.}
 
-\item{th_const}{A positive real number with default value equal to 1. It is used to define the threshold for the detection process.}
+\item{th.const}{A positive real number used to define the threshold for the detection process. The default used in the piecewise-constant model is 1.15, while in the piecewise-linear model, the value is taken equal to 1.4.}
 }
 \value{
 An S3 object of class \code{cptmodel}, which contains the following fields: 
 \item{solution.path}{The solution path method used to obtain \code{cptpath.object}}
+\item{type}{The model type used, inherited from the given \code{cptpath.object}}
 \item{model.selection}{The model selection method used to return the final change-point estimators object, here its value is \code{"thresh"}}
-\item{no.of.cpt}{The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
-\item{cpts}{The locations of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean intervals}
-\item{est}{An estimate of the piecewise-constant mean of the vector \code{cptpath.object$x}; the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points}
+\item{no.of.cpt}{The number of estimated change-points}
+\item{cpts}{The locations of estimated change-points}
+\item{est}{An estimate of the mean of the vector \code{cptpath.object$x}}
 }
 \description{
-This function estimates the number and locations of change-points in the piecewise-constant mean of a noisy data sequence via thresholding.
+This function estimates the number and locations of change-points in the piecewise-constant or piecewise-linear mean of a noisy data sequence via thresholding.
 }
 \examples{
 f <- rep(rep(c(0, 1), each = 50), 10)
@@ -34,5 +36,5 @@ x <- f + rnorm(length(f))
 model.thresh(sol.idetect_seq(x))
 }
 \seealso{
-\code{\link{sol.idetect_seq}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{breakfast}}
+\code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{breakfast}}
 }

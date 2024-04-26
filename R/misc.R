@@ -1,4 +1,4 @@
-all.shifts.are.cpts <- function(x) {
+all_shifts_are_cpts <- function(x) {
 	
 	diff.x <- abs(diff(x))
 	
@@ -8,15 +8,13 @@ all.shifts.are.cpts <- function(x) {
 	
 	
 	list(est=est, no.of.cpt=no.of.cpt, cpts=cpts)
-	
-	
 }
 
-all.slopechanges.are.cpts <- function(x) {
+all_slopechanges_are_cpts <- function(x) {
   
   diff.x <- abs(diff(diff(x)))
   
-  cpts <- which(diff.x > 0)
+  cpts <- which(diff.x > 0) + 1
   no.of.cpt <- length(cpts)
   est <- x
   
@@ -31,12 +29,12 @@ all.slopechanges.are.cpts <- function(x) {
 
 ## for wbs2
 # for roxygen2 to generate the help file - add ' below
-# Generates a fixed number of random intervals and identifes one
+# Generates a fixed number of random_intervals and identifes one
 # with the maximum absolute CUSUM value.
 # 
 # @param x A numeric vector containing the input time series
 # @param M An integer indicating the maximal number of intervals to be drawn
-# @param max.cusum.fun A function that calculates the max of the cusum for a chosen setting
+# @param max_cusum_fun A function that calculates the max of the cusum for a chosen setting
 # @param seed An integer to be passed on to \code{\link[base]{set.seed}}
 # @return A list which contains the below besides the input arguments
 # \itemize{
@@ -46,10 +44,12 @@ all.slopechanges.are.cpts <- function(x) {
 # }
 # @examples
 # # x <- mosum::testData('teeth10')$x
-# # random.cusums(x, 100)
+# # random_cusums(x, 100)
+#' @keywords internal
+#' @noRd
 
 
-random.cusums <- function(x, M, max.cusum.fun = max.cusum, seed = NULL) {
+random_cusums <- function(x, M, max_cusum_fun = max_cusum, seed = NULL, min.d = 0) {
 	if(is.integer(seed)) set.seed(seed)
   # M=0 means there is a single cusum that gets taken over [1,length(x)] and therefore we are in the standard BS setting
   y <- c(0, cumsum(x))
@@ -69,32 +69,29 @@ random.cusums <- function(x, M, max.cusum.fun = max.cusum, seed = NULL) {
     ind <- ind2 + c(1, 2)
 	}
 	res[,1:2] <- t(ind)
-	res[,3:4] <- t(apply(ind, 2, max.cusum, y))
+	res[,3:4] <- t(apply(ind, 2, max_cusum, y, min.d))
 	max.ind <- which.max(abs(res[,4]))
-	max.val <- res[max.ind,,drop=F]
+	max.val <- res[max.ind,,drop=FALSE]
 	list(res=res, max.val=max.val, M.eff=max(1, M))
 }
 
 
-systematic.cusums <- function(x, M) {
+systematic_cusums <- function(x, M, min.d = 0) {
   y <- c(0, cumsum(x))
   n <- length(x)
   M <- min(M, (n-1)*n/2)
-  ind <- grid.intervals(n, M)
+  ind <- grid_intervals(n, M)
   M <- dim(ind)[2]
   res <- matrix(0, M, 4)
   res[,1:2] <- t(ind)
-  res[,3:4] <- t(apply(ind, 2, max.cusum, y))
+  res[,3:4] <- t(apply(ind, 2, max_cusum, y, min.d))
  # max.ind <- which.max(abs(res[,4]))
   max.ind <- max.col(matrix(abs(res[,4]), 1, length(res[,4])))
-  max.val <- res[max.ind,,drop=F]
+  max.val <- res[max.ind,,drop=FALSE]
   list(res=res, max.val=max.val, M.eff=M)
 }
 
-
-
-
-max.cusum <- function(ind, y, min.d = 0) {
+max_cusum <- function(ind, y, min.d = 0) {
   z <- y[(ind[1]+1):(ind[2]+1)] - y[ind[1]]
   m <- ind[2] - ind[1] + 1
   if(m >= 2*(min.d) + 2){
@@ -110,29 +107,17 @@ max.cusum <- function(ind, y, min.d = 0) {
 
 
 
-wbs.K.int <- function(x, M, cusum.sampling) {
+wbs_K_int <- function(x, M, cusum.sampling) {
   n <- length(x)
   if (n == 1) return(matrix(NA, 4, 0))
   else {
     cpt <- t(cusum.sampling(x, M)$max.val)
-    return(cbind(cpt, wbs.K.int(x[1:cpt[3]], M, cusum.sampling), wbs.K.int(x[(cpt[3]+1):n], M, cusum.sampling) + c(rep(cpt[3], 3), 0)            ))
+    return(cbind(cpt, wbs_K_int(x[1:cpt[3]], M, cusum.sampling), wbs_K_int(x[(cpt[3]+1):n], M, cusum.sampling) + c(rep(cpt[3], 3), 0)            ))
   }
 }
 
-#wbs.K.int <- function(x, M) {
-# M = 0 means standard Binary Segmentation; M >= 1 means WBS2	
-#	n <- length(x)
-#	if (n == 1) return(matrix(NA, 4, 0))
-#	else {
-#		cpt <- t(random.cusums(x, M)$max.val)
-#		return(cbind(cpt, wbs.K.int(x[1:cpt[3]], M), wbs.K.int(x[(cpt[3]+1):n], M) + c(rep(cpt[3], 3), 0)            ))
-#	}
-#}
 
-
-
-
-mean.from.cpt <- function(x, cpt) {
+mean_from_cpt <- function(x, cpt) {
   n <- length(x)
   len.cpt <- length(cpt)
   if (len.cpt) cpt <- sort(cpt)
@@ -148,8 +133,30 @@ mean.from.cpt <- function(x, cpt) {
   rep(means, endd-beg+1)
 }
 
+slope_from_cpt <- function (x, cpt) {
+  n <- length(x)
+  if (!is.null(cpt)) {
+    if (any(is.na(cpt))) {
+      cpt <- cpt[!is.na(cpt)]
+    }
+    }
+    cpt <- as.integer(cpt)
+    len_cpt <- length(cpt)
+    if (len_cpt) {
+      if (min(cpt) < 0 || max(cpt) >= n) 
+        stop("change-points cannot be negative or greater than and n-1")
+      cpt <- sort(cpt)
+    }
+    cpt <- sort(unique(c(cpt, 0, n)))
+    fit <- rep(0, n)
+    cpt <- setdiff(cpt, c(0, n))
+    X <- splines::bs(1:n, knots = cpt, degree = 1, intercept = TRUE)
+    fit <- stats::lm.fit(X, x)$fitted.values
+  return(fit)
+}
 
-all.intervals.flat <- function(n) {
+
+all_intervals_flat <- function(n) {
   if (n == 2) ind <- matrix(1:2, 2, 1) else {
     M <- (n-1)*n/2	
     ind <- matrix(0, 2, M)
@@ -159,13 +166,13 @@ all.intervals.flat <- function(n) {
   return(ind)
 }
 
-grid.intervals <- function(n, M) {
+grid_intervals <- function(n, M) {
   if (n==2) ind <- matrix(c(1, 2), 2, 1)
-  else if (M >= (n-1)*n/2) ind <- all.intervals.flat(n)
+  else if (M >= (n-1)*n/2) ind <- all_intervals_flat(n)
   else {
     k <- 1
     while (k*(k-1)/2 < M) k <- k+1
-    ind2 <- all.intervals.flat(k)
+    ind2 <- all_intervals_flat(k)
     ind2.mx <- max(ind2)
     ind <- round((ind2 - 1) * ((n-1) / (ind2.mx-1)) + 1)
   }	
@@ -174,7 +181,7 @@ grid.intervals <- function(n, M) {
 
 
 ## for not, wbs - mostly follow the code from WBS2 in this version
-random.intervals <-	function(n, M, seed = NULL) {
+random_intervals <-	function(n, M, seed = NULL) {
   
   if(is.integer(seed)) set.seed(seed)
   n <- as.integer(n)
@@ -199,11 +206,11 @@ random.intervals <-	function(n, M, seed = NULL) {
 }
 
 # same two functions for interval drawing as in wbs and not
-fixed.intervals <-function(n,M){
+fixed_intervals <-function(n,M){
     n <- as.integer(n)
     M <- as.integer(M)
     M <- min(M, (n-1)*n/2)
-    ind <- grid.intervals(n, M)
+    ind <- grid_intervals(n, M)
     M <- dim(ind)[2]
     res <- t(ind)
     return(res)
@@ -264,84 +271,6 @@ cusum_function <- function(x) {
   return(res)
 }
 
-# This function estimates the signal in a given data sequence x with change-points at cpt.
-# The type of the signal depends on whether the change-points represent changes in a
-# piecewise-constant or continuous, piecewise-linear signal.
-# est_signal <- function(x, cpt, type = c("mean", "slope")) {
-#   if (!(is.numeric(x))){
-#     stop("The input in `x' should be a numeric vector containing the data for
-#          which you want to estimate the underlying signal.")
-#   }
-#   x <- as.numeric(x)
-#   if (NA %in% x)
-#     stop("x vector cannot contain NA's")
-#   n <- length(x)
-#   if (type == "mean") {
-#     if (missing(cpt)){
-#       cpt <- ID_pcm(x)$cpt
-#     }
-#     if (!is.null(cpt)){
-#       if (any(is.na(cpt))){
-#         cpt <- cpt[!is.na(cpt)]
-#       }
-#     }
-#     cpt <- as.integer(cpt)
-#     len_cpt <- length(cpt)
-#     if (len_cpt) {
-#       if (min(cpt) < 0 || max(cpt) >= n)
-#         stop("change-points cannot be negative or greater than and n-1")
-#       cpt <- sort(cpt)
-#     }
-#     s <- e <- rep(0, len_cpt + 1)
-#     s[1] <- 1
-#     e[len_cpt + 1] <- n
-#     if (len_cpt) {
-#      s[2:(len_cpt + 1)] <- cpt + 1
-#      e[1:len_cpt] <- cpt
-#    }
-#    means <- rep(0, len_cpt + 1)
-#    for (i in 1:(len_cpt + 1)) {
-#      means[i] <- mean(x[s[i]:e[i]])
-#    }
-#    fit <- rep(means, e - s + 1)
-#  }
-#  if (type == "slope"){
-#    if (missing(cpt)){
-#      cpt <- ID_cplm(x)$cpt
-#    }
-#    if (!is.null(cpt)){
-#      if (any(is.na(cpt))){
-#        cpt <- cpt[!is.na(cpt)]
-#      }
-#    }
-#    cpt <- as.integer(cpt)
-#    len_cpt <- length(cpt)
-#    if (len_cpt) {
-#      if (min(cpt) < 0 || max(cpt) >= n)
-#        stop("change-points cannot be negative or greater than and n-1")
-#      cpt <- sort(cpt)
-#    }
-#    cpt <- sort(unique(c(cpt, 0, n)))
-#    fit <- rep(0, n)
-#    cpt <- setdiff(cpt, c(0, n))
-#    X <- splines::bs(1:n, knots = cpt, degree = 1, intercept = TRUE)
-#    fit <- stats::lm.fit(X, x)$fitted.values
-#  }
-#  return(fit)
-#}
-
-# The following function finds the CUSUM value for the intervals [s[j], e[j]) at the location
-# b[j], where j = 1,2,...,L, with L being the length of the vectors s,b,e.
-# The input arguments are:
-#  1) x which is a numeric vector containing the data.
-#  2) s which is a vector of length L which has the startpoints for the CUSUM values that will be computed.
-#  3) e which is a vector of length L which has the endpoints for the CUSUM values that will be computed.
-#  4) b which is a vector of length L which has the location of the points where the CUSUM will be computed.
-#
-# The output is a numeric vector of length L which has the CUSUM values, CS[j], j=1,2,...,L calculated at the
-# location b[j], when the interval [s[j], e[j]] is used.
-
-
 IDetect_cusum_one <- function(x, s, e, b) {
   if (!(is.numeric(x))){
     stop("The input in `x' should be a numeric vector.")
@@ -372,3 +301,104 @@ IDetect_cusum_one <- function(x, s, e, b) {
   return(result)
 }
 
+IDetect_linear_contr_one <- function (x, s, e, b) {
+  r <- numeric()
+  for (j in 1:length(b)) {
+    x1 <- x[s[j]:e[j]]
+    n <- length(x1)
+    if ((b[j] - s[j] + 1) == 1) {
+      r[j] <- 0
+    }
+    else {
+      y1 <- cumsum(x1 * (1:n))
+      y <- cumsum(x1)
+      a <- sqrt(6/((n - 1) * n * (n + 1) * (2 - 2 * (b[j] -  s[j] + 1)^2 + 2 * (b[j] - s[j] + 1) * n - 1 + 2 * (b[j] - s[j] + 1) - n)))
+      be <- sqrt(((n - (b[j] - s[j] + 1) + 1) * (n - (b[j] - s[j] + 1)))/((b[j] - s[j]) * (b[j] - s[j] + 1)))
+      r[j] <- a * be * ((2 * (b[j] - s[j] + 1) + n - 1) * y1[b[j] - s[j] + 1] - (n + 1) * (b[j] - s[j] + 1) * y[b[j] - s[j] + 1]) - (a/be) * ((3 * n - 2 * (b[j] - s[j] + 1) + 1) * (y1[n] - y1[b[j] - s[j] + 1]) - (n + 1) * (2 * n - (b[j] - s[j] + 1)) * (y[n] - y[b[j] - s[j] + 1]))
+    }
+  }
+  return(abs(r))
+}
+
+IDetect_cumsum_lin <- function(x) {
+  if (!(is.numeric(x))) {
+    stop("The input in `x' should be a numeric vector.")
+  }
+  res <- numeric()
+  n <- length(x)
+  if (n <= 2) {
+    res <- 0
+  }
+  else {
+    b <- 2:(n - 1)
+    y1 <- cumsum(x * (1:n))
+    y <- cumsum(x)
+    a <- sqrt(6/((n - 1) * n * (n + 1) * (2 - 2 * b^2 + 2 * b * n - 1 + 2 * b - n)))
+    be <- sqrt(((n - b + 1) * (n - b))/((b - 1) * b))
+    res[1] <- 0
+    res[b] <- a * be * ((2 * b + n - 1) * y1[b] - (n + 1) * b * y[b]) - (a/be) * ((3 * n - 2 * b + 1) * (y1[n] - y1[b]) - (n + 1) * (2 * n - b) * (y[n] - y[b]))
+  }
+  return(res)
+}
+
+phi <- function(x, s, e, b){
+  res <- rep(0, length(x))
+  if (s<b && b<e){
+    alpha <- sqrt(6/((e - s)*(e - s + 1)*(e - s + 2)*(2-2*b^2+e+2*b*e-s+2*b*s-2*e*s)))
+    beta <- sqrt(((e - b + 1) * (e - b))/((b - s)*(b - s + 1)))
+    for(i in 1:length(x)){
+      if((i >= s) && (i <=b)){
+        res[i] = alpha * beta * (i *(e + 2*b - 3*s + 2) - (b*e + b*s + 2*s - 2*s^2))
+      }else if((b < i) && (i <= e)){
+        res[i] = - (alpha / beta) * (i *(3*e - 2*b - s + 2)- (2*e - b*e + 2*e^2 - b*s))
+      }
+    }
+  }
+  res
+}
+
+
+# contrast basis for piecewise constant
+# x is the vector with observations (but we only use its length in this function)
+# s is the start index, e is the end index, b is the location of the feature
+psi <- function(x, s, e, b){
+  l <- length(x)
+  y <- 1:l
+  res <- rep(0, l)
+  res[(y>=s) & (y<=b)] <- rep(sqrt((e-b)/((e-s+1) * (b-s+1))), b-s+1)
+  res[(y>=b+1) & (y<=e)] <- -rep(sqrt((b-s+1)/((e-s+1) * (e-b))), e-b)
+  res
+}
+
+# contrast basis for linear
+# x is the vector with observations (but we only use its length in this function)
+# s is the start index, e is the end index, b is the location of the feature
+gamma <- function(x, s, e){
+  vec <- 1: (length(x))
+  res <- rep(0,length(x))
+  if(s<e){
+    vec <- ((e-s+1)*(e*e-2*e*s+2*e + s*s -2*s)/12)^(-0.5)*(vec-(e+s)/2) 
+    res[s:e] <- vec[s:e]
+  }
+  res
+}
+
+
+IDetect_linear_discontr_one <- function (x, s, e, b) {
+  r <- rep(0,length(b))
+  n <- length(x)
+  for (j in 1:length(b)) {
+    x1<-rep(0,n)
+    x1[s[j]:e[j]] <- x[s[j]:e[j]]
+    if ((e[j] - s[j] <= 3) || (b[j]<s[j]) || (b[j]+1 > e[j])) {
+      r[j] <- 0
+    }
+    else{
+      r[j] <- sqrt(abs((sum(x * psi(x,s[j],e[j],b[j])))^2+
+                         (sum(x * gamma(x,s[j],b[j])))^2+
+                         (sum(x * gamma(x,b[j]+1,e[j])))^2-
+                         (sum(x * gamma(x,s[j],e[j])))^2))
+    }
+  }
+  return(r)
+}

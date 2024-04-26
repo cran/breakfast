@@ -1,5 +1,5 @@
-#' @title Estimating change-points in the piecewise-constant mean of a noisy data sequence via the strengthened Schwarz information criterion
-#' @description This function estimates the number and locations of change-points in the piecewise-constant mean of a noisy data sequence via the sSIC (strengthened Schwarz information criterion) method.
+#' @title Estimating change-points or change-point-type features in the mean of a noisy data sequence via the strengthened Schwarz information criterion
+#' @description This function estimates the number and locations of change-points or change-point-type features in the mean of a noisy data sequence via the sSIC (strengthened Schwarz information criterion) method.
 #' @details 
 #' The model selection method for algorithms that produce nested solution path is described in 
 #' "Wild binary segmentation for multiple change-point detection", P. Fryzlewicz (2014), The Annals of Statitics, 42: 2243--2281.
@@ -8,13 +8,16 @@
 #' 
 #' @param cptpath.object A solution-path object, returned by a \code{sol.[name]} routine. Note that the field \code{cptpath.object$x} contains the input data sequence. 
 #' @param alpha The parameter associated with the sSIC. The default value is 1.01. Note that the SIC is recovered when alpha = 1.
-#' @param q.max The maximum number of change-points allowed. If nothing or \code{NULL} is provided, the default value of \code{min(100, n/log(n))} (rounded to an integer) will be used.
+#' @param q.max The maximum number of features allowed. If nothing or \code{NULL} is provided, the default value of \code{min(100, n/log(n))} (rounded to an integer) will be used.
 #' @return An S3 object of class \code{cptmodel}, which contains the following fields: 
 #' \item{solution.path}{The solution path method used to obtain \code{cptpath.object}}
-#' \item{model.selection}{The model selection method used to return the final change-point estimators object, here its value is \code{"ic"}}
-#' \item{no.of.cpt}{The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
-#' \item{cpts}{The locations of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean intervals}
-#' \item{est}{An estimate of the piecewise-constant mean of the vector \code{cptpath.object$x}; the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points}
+#' \item{type}{The model type used, inherited from the given \code{cptpath.object}}
+#' \item{model.selection}{The model selection method used to return the final change-point or change-point-type feature estimators object, here its value is \code{"ic"}}
+#' \item{no.of.cpt}{The number of estimated features in the mean of the vector \code{cptpath.object$x} based on the given \code{type} of the model}
+#' \item{cpts}{The locations of estimated features in the mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean or constant-slope intervals}
+#' \item{est}{An estimate of the mean of the vector \code{cptpath.object$x}; for piecewise-constant signals, the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points; 
+#' for piecewise-linear but discontinuous signals, the values are based on the estimated linear trend between each pair of consecutive detected change of slopes; 
+#' for piecewise-linear and continuous signals, it is similar to the previous case but with the continuity constraint enforced, which envolves solving a global least squares problem.}
 #' @seealso \code{\link{sol.idetect}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{breakfast}}
 #' @references P. Fryzlewicz (2014). Wild binary segmentation for multiple change-point detection. \emph{The Annals of Statistics}, 42(6), 2243--2281.
 #' @references R. Baranowski, Y. Chen & P. Fryzlewicz (2019). Narrowest-over-threshold detection of multiple change points and change-point-like features. \emph{Journal of the Royal Statistical Society: Series B}, 81(3), 649--672.
@@ -136,8 +139,10 @@ logLik <- function(cptpath.object, cpts){
   
   ret <- - length(cptpath.object$x)/2 * log(mean(residuals^2))
     
-  attr(ret, "df") <- 2*n.cpt + 2
-  
+  if (cptpath.object$type == "const")   attr(ret, "df") <- 2*n.cpt + 2
+  else if (cptpath.object$type == "lin.discont") attr(ret, "df") <- 3*n.cpt + 3
+  else if (cptpath.object$type == "lin.cont") attr(ret, "df") <- 2*n.cpt + 3
+ 
   return(ret)
   
 }
@@ -154,14 +159,39 @@ prediction <- function(cptpath.object, cpts) {
     cpts <- sort(unique(c(cpts, 0, length(cptpath.object$x))))
     
     fit <- rep(0, length(cptpath.object$x))
-      
-    for (i in 1:(length(cpts) - 1)) {
+    
+    if (cptpath.object$type == "const"){
+      for (i in 1:(length(cpts) - 1)) {
         fit[(cpts[i] + 1):cpts[i + 1]] <- mean(cptpath.object$x[(cpts[i] + 1):cpts[i + 1]])
-        
+      }
     }
-    
+    else if (cptpath.object$type == "lin.cont") {
+      cpts <- setdiff(cpts, c(0, length(cptpath.object$x)))
+      X <-
+        bs(
+          1:length(cptpath.object$x),
+          knots = cpts,
+          degree = 1,
+          intercept = TRUE
+        )
+      fit <- lm.fit(X, cptpath.object$x)$fitted.values
+    }
+    else if (cptpath.object$type == "lin.discont") {
+      for (i in 1:(length(cpts) - 1)) {
+        y <- cptpath.object$x[(cpts[i] + 1):cpts[i + 1]]
+        
+        if (length(y) == 1)
+          fit[(cpts[i] + 1):cpts[i + 1]] <- y
+        else{
+          n <- length(y)
+          x <- 1:n
+          beta <- cov(x, y) / (1 / 12 * (-1 + n ^ 2))
+          alpha <- mean(y) - (n + 1) * beta / 2
+          fit[(cpts[i] + 1):cpts[i + 1]] <- alpha + beta * x
+        }
+      }
+    }
     return(fit)
-    
 }
 
 

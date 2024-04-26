@@ -4,10 +4,13 @@
 \alias{sol.not}
 \title{Solution path generation via the Narrowest-Over-Threshold method}
 \usage{
-sol.not(x, M = 10000, systematic.intervals = TRUE, seed = NULL)
+sol.not(x, type = "const", M = 10000, systematic.intervals = TRUE, seed = NULL)
 }
 \arguments{
 \item{x}{A numeric vector containing the data to be processed}
+
+\item{type}{The model type considered. \code{type = "const"} means the signals are the piecewise constant, \code{type = "lin.cont"} means the signals are the piecewise linear and continuous, and \code{type = "lin.discont"} means the signals are the piecewise linear but not necessarily continuous. 
+If not given, the default is \code{type = "const"}}
 
 \item{M}{The maximum number of all data sub-samples at the beginning of the algorithm. The default is
 \code{M = 10000}}
@@ -23,12 +26,13 @@ An S3 object of class \code{cptpath}, which contains the following fields:
 \item{solution.set}{Locations of possible change-points in the mean of \code{x} for each threshold level (in the decreasing order), arranged in the form of a list of lists}
 \item{solution.set.th}{A list that contains threshold levels corresponding to the detections in \code{solution.set}}
 \item{x}{Input vector \code{x}}
+\item{type}{The model type used, which is given in the input. If not given, the default is \code{type="const"}}
 \item{M}{Input parameter \code{M}}
 \item{cands}{Matrix of dimensions length(\code{x}) - 1 by 4. The first two columns are (start, end)-points of the detection intervals of the corresponding possible change-point location in the third column resulted from applying NOT to all threshold levels. The fourth column is a measure of strength of the corresponding possible change-point. The order of the rows reflect the strength of each detection in decreasing order. To avoid repetition, each possible location would appear at most once in the matrix (with the sub-interval that carries its highest possible strength)}
 \item{method}{The method used, which has value "not" here}
 }
 \description{
-This function arranges all possible change-points in the mean of the input vector in the order of importance, via the Narrowest-Over-Threshold (NOT) method.
+This function arranges all possible features (e.g. change in the mean, change in the slope, etc) of the input vector in the order of importance, via the Narrowest-Over-Threshold (NOT) method.
 }
 \details{
 The Narrowest-Over-Threshold method and its algorithm is described in 
@@ -42,5 +46,5 @@ sol.not(r3)
 R. Baranowski, Y. Chen & P. Fryzlewicz (2019). Narrowest-over-threshold detection of multiple change points and change-point-like features. \emph{Journal of the Royal Statistical Society: Series B}, 81(3), 649--672.
 }
 \seealso{
-\code{\link{sol.idetect}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}},  \code{\link{sol.wbs2}}
+\code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}},  \code{\link{sol.wbs2}}
 }

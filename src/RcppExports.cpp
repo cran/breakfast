@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // get_comb_ind
 unsigned get_comb_ind(const std::vector<bool>& active);
 RcppExport SEXP _breakfast_get_comb_ind(SEXP activeSEXP) {
@@ -25,86 +30,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const IntegerVector& >::type cand(candSEXP);
     Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
     rcpp_result_gen = Rcpp::wrap(extract_sub(cand, x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// start_bit_permutations
-unsigned start_bit_permutations(unsigned l);
-RcppExport SEXP _breakfast_start_bit_permutations(SEXP lSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< unsigned >::type l(lSEXP);
-    rcpp_result_gen = Rcpp::wrap(start_bit_permutations(l));
-    return rcpp_result_gen;
-END_RCPP
-}
-// next_bit_permutation
-unsigned next_bit_permutation(unsigned v);
-RcppExport SEXP _breakfast_next_bit_permutation(SEXP vSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< unsigned >::type v(vSEXP);
-    rcpp_result_gen = Rcpp::wrap(next_bit_permutation(v));
-    return rcpp_result_gen;
-END_RCPP
-}
-// is_child
-bool is_child(unsigned i_child, unsigned i_parent);
-RcppExport SEXP _breakfast_is_child(SEXP i_childSEXP, SEXP i_parentSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< unsigned >::type i_child(i_childSEXP);
-    Rcpp::traits::input_parameter< unsigned >::type i_parent(i_parentSEXP);
-    rcpp_result_gen = Rcpp::wrap(is_child(i_child, i_parent));
-    return rcpp_result_gen;
-END_RCPP
-}
-// numberOfSetBits
-unsigned numberOfSetBits(uint32_t i);
-RcppExport SEXP _breakfast_numberOfSetBits(SEXP iSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< uint32_t >::type i(iSEXP);
-    rcpp_result_gen = Rcpp::wrap(numberOfSetBits(i));
-    return rcpp_result_gen;
-END_RCPP
-}
-// comb_contains_cpt
-bool comb_contains_cpt(unsigned comb, unsigned k_ind);
-RcppExport SEXP _breakfast_comb_contains_cpt(SEXP combSEXP, SEXP k_indSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< unsigned >::type comb(combSEXP);
-    Rcpp::traits::input_parameter< unsigned >::type k_ind(k_indSEXP);
-    rcpp_result_gen = Rcpp::wrap(comb_contains_cpt(comb, k_ind));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_local_costs
-double get_local_costs(unsigned icomb, const NumericMatrix& sub_sums);
-RcppExport SEXP _breakfast_get_local_costs(SEXP icombSEXP, SEXP sub_sumsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< unsigned >::type icomb(icombSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type sub_sums(sub_sumsSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_local_costs(icomb, sub_sums));
-    return rcpp_result_gen;
-END_RCPP
-}
-// setBitNumber
-int setBitNumber(int n);
-RcppExport SEXP _breakfast_setBitNumber(SEXP nSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(setBitNumber(n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -142,21 +67,11 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP not_r_wrapper(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-
 static const R_CallMethodDef CallEntries[] = {
     {"_breakfast_get_comb_ind", (DL_FUNC) &_breakfast_get_comb_ind, 1},
     {"_breakfast_extract_sub", (DL_FUNC) &_breakfast_extract_sub, 2},
-    {"_breakfast_start_bit_permutations", (DL_FUNC) &_breakfast_start_bit_permutations, 1},
-    {"_breakfast_next_bit_permutation", (DL_FUNC) &_breakfast_next_bit_permutation, 1},
-    {"_breakfast_is_child", (DL_FUNC) &_breakfast_is_child, 2},
-    {"_breakfast_numberOfSetBits", (DL_FUNC) &_breakfast_numberOfSetBits, 1},
-    {"_breakfast_comb_contains_cpt", (DL_FUNC) &_breakfast_comb_contains_cpt, 2},
-    {"_breakfast_get_local_costs", (DL_FUNC) &_breakfast_get_local_costs, 2},
-    {"_breakfast_setBitNumber", (DL_FUNC) &_breakfast_setBitNumber, 1},
     {"_breakfast_exhaust_sc", (DL_FUNC) &_breakfast_exhaust_sc, 7},
     {"_breakfast_call_not_r_wrapper", (DL_FUNC) &_breakfast_call_not_r_wrapper, 6},
-    {"not_r_wrapper", (DL_FUNC) &not_r_wrapper, 6},
     {NULL, NULL, 0}
 };
 

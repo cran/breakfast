@@ -1,21 +1,30 @@
-#' @title Estimating change-points in the piecewise-constant mean of a noisy data sequence via the Steepest Drop to Low Levels method
-#' @description This function estimates the number and locations of change-points in the piecewise-constant mean of a noisy data sequence via the Steepest Drop to Low Levels method.
+#' @title Estimating change-points in the piecewise-constant or piecewise-linear mean of a noisy data sequence via the Steepest Drop to Low Levels method
+#' @description This function estimates the number and locations of change-points in the piecewise-constant or piecewise-linear mean of a noisy data sequence via the Steepest Drop to Low Levels method.
 #' @details 
 #' The Steepest Drop to Low Levels method is described in 
 #' "Detecting possibly frequent change-points: Wild Binary Segmentation 2 and steepest-drop model selection", P. Fryzlewicz (2020), Journal of the Korean Statistical Society, 49, 1027--1070.
 #' 
-#' @param cptpath.object A solution-path object, returned by a \code{sol.[name]} routine. In particular, SDLL model selection should work well when \code{cptpath.object} is an object returned by the \code{sol.wbs2} routine. Note that the field \code{cptpath.object$x} contains the input data sequence. 
-#' @param sigma An estimate of the standard deviation of the noise in the data \code{cptpath.object$x}. Can be a functional of \code{cptpath.object$x} or a specific value if known. The default is the Median Absolute Deviation of the vector \code{diff(cptpath.object$x)/sqrt(2)}, tuned to the Gaussian distribution. Note that \code{model.sdll} works particularly well when the noise is i.i.d. Gaussian.
-#' @param universal If \code{TRUE}, then the threshold that decides if there are any change-points is chosen automatically, so that the probability of type-I error (i.e. indicating change-points if there are none) is approximately \code{1 - alpha} when the number \code{M} of intervals drawn in the \code{sol.wbs2} solution path routine is 1000. If \code{FALSE}, then \code{th.const} must be specified.
-#' @param th.const Only relevant if \code{universal == FALSE}; in that case a numerical value must be provided. Used to create the threshold (applicable to the CUSUM magnitudes stored in \code{cptpath.object}) that decides if there are any change-points in the mean vector; that threshold is then \code{th.const * sqrt(2 * log(n)) * sigma}, where \code{n} is the length of the data vector \code{cptpath.object$x}.
-#' @param th.const.min.mult A fractional multiple of the threshold, used to decide the lowest magnitude of CUSUMs from \code{cptpath.object} still considered by the SDLL model selection criterion as potentially change-point-carrying.
-#' @param lambda Only relevant if \code{universal == TRUE}; can be set to 0.9 or 0.95. The approximate probability of not detecting any change-points if the truth does not contain any, when the number \code{M} of intervals drawn in the \code{sol.wbs2} solution path routine is 1000.
+#' @param cptpath.object A solution-path object, returned by a \code{sol.[name]} routine. The \code{cptpath.object$type} variable decides the model type: piecewise-constant (\code{type == "const"}),
+#' piecewise-linear and continuous (\code{type == "lin.cont"}) or piecewise-linear and discontinuous (\code{type == "lin.discont"}). In the piecewise-constant model, SDLL model selection should work well 
+#' when \code{cptpath.object} is an object returned by the \code{sol.wbs2} routine. In the piecewise-linear model (whether continuous or not), the output of \code{sol.idetect} should be supplied as
+#' \code{cptpath.object}. Note that the field \code{cptpath.object$x} contains the input data sequence. 
+#' @param sigma An estimate of the standard deviation of the noise in the data \code{cptpath.object$x}. Can be a functional of \code{cptpath.object$x} or a specific value if known. 
+#' The default in the piecewise-constant model is the Median Absolute Deviation of the vector \code{diff(cptpath.object$x)/sqrt(2)}, tuned to the Gaussian distribution.
+#' In the piecewise-linear models, \code{diff(cptpath.object$x, differences = 2)/sqrt(6)} is used by default.
+#' Note that \code{model.sdll} works particularly well when the noise is i.i.d. Gaussian.
+#' @param universal If \code{TRUE}, then the threshold that decides if there are any change-points is chosen automatically, so that the probability of type-I error (i.e. indicating change-points if there are none) 
+#' is approximately \code{1 - alpha}. If \code{FALSE}, then \code{th.const} must be specified.
+#' @param th.const Only relevant if \code{universal == FALSE}; in that case a numerical value must be provided. Used to create the threshold (applicable to the contrast magnitudes stored in \code{cptpath.object}) 
+#' that decides if there are any change-points in the mean vector; that threshold is then \code{th.const * sqrt(2 * log(n)) * sigma}, where \code{n} is the length of the data vector \code{cptpath.object$x}.
+#' @param th.const.min.mult A fractional multiple of the threshold, used to decide the lowest magnitude of contrasts from \code{cptpath.object} still considered by the SDLL model selection criterion as potentially change-point-carrying.
+#' @param lambda Only relevant if \code{universal == TRUE}; can be set to 0.9 or 0.95. The approximate probability of not detecting any change-points if the truth does not contain any.
 #' @return An S3 object of class \code{cptmodel}, which contains the following fields: 
 #' \item{solution.path}{The solution path method used to obtain \code{cptpath.object}}
+#' \item{type}{The model type used, inherited from the given \code{cptpath.object}}
 #' \item{model.selection}{The model selection method used to return the final change-point estimators object, here its value is \code{"sdll"}}
-#' \item{no.of.cpt}{The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
-#' \item{cpts}{The locations of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean intervals}
-#' \item{est}{An estimate of the piecewise-constant mean of the vector \code{cptpath.object$x}; the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points}
+#' \item{no.of.cpt}{The number of estimated change-points}
+#' \item{cpts}{The locations of estimated change-points}
+#' \item{est}{An estimate of the mean of the vector \code{cptpath.object$x}}
 #' @seealso \code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{breakfast}}
 #' @references P. Fryzlewicz (2020). Detecting possibly frequent change-points: Wild Binary Segmentation 2 and steepest-drop model selection. \emph{Journal of the Korean Statistical Society}, 49, 1027--1070.
 #' @examples
@@ -24,9 +33,11 @@
 #' model.sdll(sol.wbs2(x))
 model.sdll <- function(cptpath.object, sigma = stats::mad(diff(cptpath.object$x)/sqrt(2)), universal = TRUE, th.const = NULL, th.const.min.mult = 0.3, lambda = 0.9) {
 
-  if(!("cptpath" %in%  class(cptpath.object))) stop("A cptmodel class object has to be supplied in the first argument.")
+  
+  if(!("cptpath" %in%  class(cptpath.object)))  stop("A cptmodel class object has to be supplied in the first argument.")
   
 	x <- cptpath.object$x
+	type <- cptpath.object$type
 
 	n <- length(x)
 
@@ -42,9 +53,11 @@ model.sdll <- function(cptpath.object, sigma = stats::mad(diff(cptpath.object$x)
 
     else {
 
+		if (!(type == "const")) sigma <- stats::mad(diff(cptpath.object$x, differences = 2)/sqrt(6))
+
 		if (sigma == 0) {
 			
-			s0 <- all.shifts.are.cpts(x)
+			if (type == "const") s0 <- all_shifts_are_cpts(x) else s0 <- all_slopechanges_are_cpts(x)
 			est <- s0$est
 			no.of.cpt <- s0$no.of.cpt
 			cpts <- s0$cpts
@@ -53,17 +66,20 @@ model.sdll <- function(cptpath.object, sigma = stats::mad(diff(cptpath.object$x)
 
 		if (universal) {
 
-        	u <- universal.M.th.v3(n, lambda)
+        	if (type == "const") u <- universal.M.th.v3(n, lambda)
+        	else if (type == "lin.cont") u <- universal.th.lin(n, lambda)
+        	else if (type == "lin.discont") u <- universal.th.lin.discont(n, lambda)
 
         	th.const <- u$th.const
-
-#        	M <- u$M
 
     	}
 
     	else if (is.null(th.const)) stop("If universal is FALSE, then th.const must be specified.")
     	    	
-		if (cptpath.object$method %in% c("not", "idetect_seq")) warning("model.sdll won't work well on cptpath.object produced with sol.not or sol.idetect_seq; consider using other model. functions, or produce your cptpath.object with a different sol. function")
+		if ((type == "const") & (cptpath.object$method %in% c("not", "idetect_seq"))) warning("model.sdll won't work well on cptpath.object produced with sol.not or sol.idetect_seq; consider using other model. functions, or produce your cptpath.object with a different sol. function")
+
+		if (!(type == "const") & !(cptpath.object$method == "idetect")) warning("In the piecewise-linear change-point model, for the SDLL
+		model selection criterion to work well, please consider supplying a cptpath.object produced with sol.idetect.")
  
     	th.const.min <- th.const * th.const.min.mult
 
@@ -73,7 +89,7 @@ model.sdll <- function(cptpath.object, sigma = stats::mad(diff(cptpath.object$x)
 
 
 
- 	#	rc <- t(wbs.K.int(x, M))
+ 	#	rc <- t(wbs_K_int(x, M))
 
  		if (dim(cptpath.object$cands)[1] == 0) {
  			
@@ -106,7 +122,7 @@ model.sdll <- function(cptpath.object, sigma = stats::mad(diff(cptpath.object$x)
 
 				no.of.cpt <- 1
 
-	#			est <- mean.from.cpt(x, cpts)								
+	#			est <- mean_from_cpt(x, cpts)								
 
 			}
 
@@ -135,20 +151,22 @@ model.sdll <- function(cptpath.object, sigma = stats::mad(diff(cptpath.object$x)
 
 				cpts <- sort(cptpath.object$cands[1:no.of.cpt,3])			
 
-	#			est <- mean.from.cpt(x, cpts)						
+	#			est <- mean_from_cpt(x, cpts)						
 
 			}
 
 		} 
 
-	est <- mean.from.cpt(x, cpts)
+	est <- prediction(cptpath.object, cpts)
+
+#	if (type == "const") est <- mean_from_cpt(x, cpts) else est <- slope_from_cpt(x, cpts)
 
     }
 
 	}
 
 
-	ret <- list(solution.path=cptpath.object$method, model.selection="sdll", no.of.cpt=no.of.cpt, cpts=cpts, est=est)
+	ret <- list(solution.path=cptpath.object$method, type = type, model.selection="sdll", no.of.cpt=no.of.cpt, cpts=cpts, est=est)
 	
 	class(ret) <- "cptmodel"
 	
@@ -229,3 +247,48 @@ universal.M.th.v3 <- function(n, lambda = 0.9) {
 
 
 
+universal.th.lin <- function(n, lambda = 0.9) {
+	
+	mat.90 <- matrix(0, 13, 2)
+	mat.90[,1] <- c(30, 50, 100, 200, 300, 400, 500, 750, 1000, 1250, 1500, 1750, 2000)
+	mat.90[,2] <- c(1.32, 1.24, 1.19, 1.15, 1.15, 1.14, 1.13, 1.13, 1.13, 1.12, 1.12, 1.12, 1.12)
+
+	mat.95 <- matrix(0, 13, 2)
+	mat.95[,1] <- c(30, 50, 100, 200, 300, 400, 500, 750, 1000, 1250, 1500, 1750, 2000)
+	mat.95[,2] <- c(1.5, 1.36, 1.27, 1.21, 1.19, 1.18, 1.18, 1.18, 1.17, 1.17, 1.17, 1.17, 1.16)
+	
+	if (lambda == 0.9) A <- mat.90 else A <- mat.95
+
+	d <- dim(A)
+
+	if (n < A[1,1]) th <- A[1,2]
+		else if (n > A[d[1],1]) th <- A[d[1],2]
+			else th <- approx(A[,1], A[,2], xout = n)$y
+
+	list(th.const=th)
+	
+}
+
+
+
+universal.th.lin.discont <- function(n, lambda = 0.9) {
+  
+  mat.90 <- matrix(0, 13, 2)
+  mat.90[,1] <- c(30, 50, 100, 200, 300, 400, 500, 750, 1000, 1250, 1500, 1750, 2000)
+  mat.90[,2] <- c(1.70, 1.61, 1.49, 1.42, 1.37, 1.34, 1.34, 1.31, 1.28, 1.26, 1.25, 1.25, 1.23)
+  
+  mat.95 <- matrix(0, 13, 2)
+  mat.95[,1] <- c(30, 50, 100, 200, 300, 400, 500, 750, 1000, 1250, 1500, 1750, 2000)
+  mat.95[,2] <- c(1.90, 1.73, 1.61, 1.49, 1.42, 1.40, 1.40, 1.35, 1.33, 1.30, 1.30, 1.29, 1.27)
+  
+  if (lambda == 0.9) A <- mat.90 else A <- mat.95
+  
+  d <- dim(A)
+  
+  if (n < A[1,1]) th <- A[1,2]
+  else if (n > A[d[1],1]) th <- A[d[1],2]
+  else th <- approx(A[,1], A[,2], xout = n)$y
+  
+  list(th.const=th)
+  
+}

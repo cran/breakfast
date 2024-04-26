@@ -6,6 +6,7 @@
 #' detection", P. Fryzlewicz (2018), The Annals of Statistics, 46, 3390--3421.
 #'
 #' @param x A numeric vector containing the data to be processed
+#' @param type The model type considered. \code{type = "const"} means piecewise-constant; this is the only type currently supported in \code{sol.tguh}
 #' @param p Specifies the number of region pairs merged 
 #' in each pass through the data, as the proportion of all remaining region pairs. The default is
 #' \code{p = 0.01}
@@ -14,7 +15,8 @@
 #' \item{solution.path}{Locations of possible change-points in the mean of \code{x}, arranged in decreasing order of change-point importance}
 #' \item{solution.set}{Empty list}
 #' \item{x}{Input vector \code{x}}
-#' \item{M}{Input parameter \code{M}}
+#' \item{type}{Input parameter \code{type}}
+#' \item{p}{Input parameter \code{p}}
 #' \item{cands}{Matrix of dimensions length(\code{x}) - 1 by 4. The first two columns are (start, end)-points of the detection intervals of the corresponding possible change-point location in the third column. The fourth column is a measure of strength of the corresponding possible change-point. The order of the rows is the same as the order returned in \code{solution.path}}
 #' \item{method}{The method used, which has value "tguh" here}
 #' @seealso \code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}
@@ -23,12 +25,14 @@
 #' r3 <- rnorm(1000) + c(rep(0,300), rep(2,200), rep(-4,300), rep(0,200))
 #' sol.tguh(r3)
 #' @export
-sol.tguh <- function(x, p = .01) {
+sol.tguh <- function(x, type = "const", p = .01) {
 	
 	x <- as.numeric(x)
 	storage.mode(x) <- "double"
 	n <- length(x)
 	check.input(x)
+	
+	stopifnot(type %in% c('const'))
   
 	solutions.nested <- TRUE
 	
@@ -57,12 +61,17 @@ sol.tguh <- function(x, p = .01) {
 		solution.path <- sorted.cusums[,3]
 		
 	}	
-	
-	ret = list(solutions.nested = solutions.nested, solution.path = solution.path, solution.set = solution.set, x = x, p = p, cands = sorted.cusums, method = "tguh")
-	
+	ret <- list()	  
+	ret$solutions.nested = TRUE
+	ret$solution.path <- solution.path
+	ret$solution.set <- solution.set
+	ret$x = x
+	ret$type = type
+	ret$p = p
+	ret$cands = sorted.cusums
+	ret$method = "tguh"
 	class(ret) <- "cptpath"
-	
-	ret
+	return(ret)
 	
 }
 

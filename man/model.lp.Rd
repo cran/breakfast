@@ -18,17 +18,17 @@ model.lp(
 
 \item{min.d}{A number specifying the minimal spacing between change points; \code{min.d = 5} by default}
 
-\item{penalty}{A string specifying the type of penalty term to be used in Schwarz criterion; possible values are:
-\itemize{
-   \item{\code{"log"}}{ Use \code{penalty = log(length(x))^pen.exp}}
-   \item{\code{"polynomial"}}{ Use \code{penalty = length(x)^pen.exp}}
+\item{penalty}{A string specifying the type of penalty term to be used in Schwarz criterion; possible values are: 
+\describe{
+   \item{\code{"log"}}{Use \code{penalty = log(length(x))^pen.exp}}
+   \item{\code{"polynomial"}}{Use \code{penalty = length(x)^pen.exp}}
 }}
 
 \item{pen.exp}{Exponent for the penalty term (see \code{penalty})}
 
 \item{do.thr}{If \code{do.thr = TRUE}, mild threshoding on the CUSUM test statistics is performed after internal standardisation step in order to "pre-prune down" the candidates}
 
-\item{th.const}{A constant multiplied to \code{sqrt(2*log(length(x)))} to form a mild threshold; if not supplied, a default value (\code{0.5*} a value suggested in Fryzlewicz (2020) is used,
+\item{th.const}{A constant multiplied to \code{sqrt(2*log(length(x)))} to form a mild threshold; if not supplied, a default value (\code{0.5*} the value suggested in Fryzlewicz (2020)) is used,
 see \code{th.const} in \code{\link{model.sdll}}}
 }
 \value{
@@ -43,7 +43,7 @@ An S3 object of class \code{cptmodel}, which contains the following fields:
 This function estimates the number and locations of change-points in the piecewise-constant mean of a noisy data sequence via the localised pruning method, which performs a Schwarz criterion-based model selection on the given candidate set in a localised way.
 }
 \details{
-Further information can be found in Cho and Kirch (2021).
+Further information can be found in Cho and Kirch (2022).
 }
 \examples{
 f <- rep(rep(c(0, 1), each = 50), 10)
@@ -51,7 +51,7 @@ x <- f + rnorm(length(f)) * .5
 model.lp(sol.not(x))
 }
 \references{
-H. Cho & C. Kirch (2021) Two-stage data segmentation permitting multiscale change points, heavy tails and dependence. \emph{arXiv preprint arXiv:1910.12486}.
+H. Cho & C. Kirch (2022) Two-stage data segmentation permitting multiscale change points, heavy tails and dependence. \emph{Annals of the Institute of Statistical Mathematics}, 74(4), 653--684.
 }
 \seealso{
 \code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs}}, \code{\link{sol.wbs2}}, \code{\link{breakfast}}

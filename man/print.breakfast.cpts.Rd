@@ -2,7 +2,7 @@
 % Please edit documentation in R/tools.R
 \name{print.breakfast.cpts}
 \alias{print.breakfast.cpts}
-\title{Change-points estimated by breakfast}
+\title{Change-points estimated by the "breakfast" routine}
 \usage{
 \method{print}{breakfast.cpts}(x, by = c("method", "estimator"), ...)
 }

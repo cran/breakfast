@@ -2,7 +2,7 @@
 % Please edit documentation in R/tools.R
 \name{plot.breakfast.cpts}
 \alias{plot.breakfast.cpts}
-\title{Change-points estimated by breakfast}
+\title{Change-points estimated by the "breakfast" routine}
 \usage{
 \method{plot}{breakfast.cpts}(x, display.data = TRUE, ...)
 }

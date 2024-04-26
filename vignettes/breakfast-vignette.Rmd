@@ -91,7 +91,7 @@ This method estimates the number and locations of change-points in the piecewise
 ### Localised pruning (LP)
 
 LP is described in [Two-stage data segmentation permitting multiscale change points, heavy tails and dependence](https://arxiv.org/abs/1910.12486) by H. Cho and C. Kirch (2020).
-See also [mosum: A package for moving sums in change-point analysis](https://drive.google.com/file/d/1KSbGfx-sg6B1CcjN4i2RJSaXVejOA7bp/view) by A. Meier, C. Kirch and H. Cho (2020). Journal of Statistical Software, to appear.
+See also [mosum: A package for moving sums in change-point analysis](https://doi.org/10.18637/jss.v097.i08) by A. Meier, C. Kirch and H. Cho (2021). Journal of Statistical Software, 97(8), 1–42.
 
 From a set of candidate change-point estimators, it selects a subset
 that satisfies the followings based on the Schwarz criterion (SC):
@@ -114,7 +114,6 @@ This method estimates the number and locations of change-points in the piecewise
 
 ## Planned future developments
 
-* Methods for piecewise-linear signals plus iid Gaussian noise
 * Extensions to serially correlated, light-tailed noise
 * Robust methods for heavy-tailed noise which detect changes in the piecewise-constant median
 * Data windowing for extremely long signals
@@ -122,7 +121,9 @@ This method estimates the number and locations of change-points in the piecewise
 # Simulation study
 The following simulation study shows the performance of all the solution path methods when combined with the model selection methods for various signals. The results presented in this section are based upon version 2.1 of the package, where for NOT, WBS, and WBS2 the intervals are randomly drawn. In the next version of the package we will also investigate the performance of the three aforementioned solution path methods for a deterministic grid.
 
-## Simulated signals
+## Piecewise-constant signals
+
+### Simulated signals
 The signals used in the simulation study are
 
 * (NC1) *constant signal* : length 3000 with no change-points. The standard deviation is $\sigma = 1$.
@@ -160,11 +161,11 @@ The signals used in the simulation study are
 
 * (M13) *linear no noise*: The same linear signal as in (M13) but without noise, meaning that $\sigma = 0$.
 
-## Simulation process
-We ran 100 replications for each one of the abovementioned signals and the frequency distribution of $\hat{N} - N$ for each solution path method (combined with a model selection algorithm) is presented. The methods with the highest empirical frequency of $\hat{N} - N = 0$ (or in a neighbourhood of zero, depending on the example) and those within $10\%$ off the highest are given in bold. As a measure of the accuracy of the detected locations, we provide Monte-Carlo estimates of the mean squared error, ${\rm MSE} = T^{-1}\sum_{t=1}^{T}{\rm E}\left(\hat{f}_t - f_t\right)^2$, where $\hat{f}_t$ is the ordinary least square approximation of $f_t$ between two successive change-points. The scaled Hausdorff distance, $d_H = n_s^{-1}\max\left\lbrace \max_j\min_k\left|r_j-\hat{r}_k\right|,\max_k\min_j\left|r_j-\hat{r}_k\right|\right\rbrace,$ where $n_s$ is the length of the largest segment, is also given in all examples apart from the signals (NC1) - (NC4), which are constant-mean signals without any change-points. Now, due to the fact that we are under a misspecification scenario, we need to be careful on how to explain the results for the signals (M13) and (M14). These signals are linear, and we are using methods developed for the detection of changes in piecewise-constant signals. Therefore in the relevant (for these signals) tables, we decided to present the average number of estimated change-points that each method returns, and the MSE, which is calculated by taking as true signal a stair-like structure, where each data point is a change-point and there is a jump of magnitude equal to one. The average computational time for all methods is also provided.
+### Simulation process
+We ran 100 replications for each one of the abovementioned signals and the frequency distribution of $\hat{N} - N$ for each solution path method (combined with a model selection algorithm) is presented. As a measure of the accuracy of the detected locations, we provide Monte-Carlo estimates of the mean squared error, ${\rm MSE} = T^{-1}\sum_{t=1}^{T}{\rm E}\left(\hat{f}_t - f_t\right)^2$, where $\hat{f}_t$ is the ordinary least square approximation of $f_t$ between two successive change-points. The scaled Hausdorff distance, $d_H = n_s^{-1}\max\left\lbrace \max_j\min_k\left|r_j-\hat{r}_k\right|,\max_k\min_j\left|r_j-\hat{r}_k\right|\right\rbrace,$ where $n_s$ is the length of the largest segment, is also given in all examples apart from the signals (NC1) - (NC4), which are constant-mean signals without any change-points. Now, due to the fact that we are under a misspecification scenario, we need to be careful on how to explain the results for the signals (M13) and (M14). These signals are linear, and we are using methods developed for the detection of changes in piecewise-constant signals. Therefore in the relevant (for these signals) tables, we decided to present the average number of estimated change-points that each method returns, and the MSE, which is calculated by taking as true signal a stair-like structure, where each data point is a change-point and there is a jump of magnitude equal to one. The average computational time for all methods is also provided.
 
 
-## Code for running the simulations
+### Code for running the simulations
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -993,9 +994,9 @@ SIMR14.small_lp <- sim.study.lp(linear,true.cpt=seq(1,500,1),sigma=0,seed=seed.t
 
 ```
 
-## Detailed results
+### Detailed results
 
-### Information-criterion based results
+#### Information-criterion based results
 In this section, we give the simulation results when the *model.ic* function from the package is employed at each of the solution path methods. The results are given in Tables 1 - 7 below and a summary of the results is given in Table 8. We note that for ID, the results are presented for the *sol.idetect* function (and not for the *sol.idetect_seq*), which is the one that should be used when Isolate-Detect is combined with the information-criterion model selection algorithm of the *model.ic* function.
 
 |        |           |$\hat{N} - N$| | | | | |
@@ -1522,7 +1523,7 @@ Table: Table 8: Summary of the results when the information criterion model sele
 <!-- |**(M12)**|$\checkmark$|            |            |$\checkmark$|            | -->
 <!-- Table: Table 16: Summary of the results when the thresholding model selection was employed for all the solution path algorithms. -->
 
-### Thresholding based results
+#### Thresholding based results
 In this section, we give the simulation results when the *model.thresh* function from the package is employed at each of the solution path methods. The results are given in Tables 9 - 15 below and a summary of the results is given in Table 16. We note that for ID, the results are presented for the *sol.idetect_seq* function (and not for the *sol.idetect*), which is the one that should be used when Isolate-Detect is combined with the thresholding model selection algorithm of the *model.thresh* function.
 
 |  |  | $\hat{N} - N$ | | | | | |
@@ -1872,7 +1873,7 @@ Table: Table 16: Summary of the results when the thresholding model selection wa
 <!-- |**(M12)**|$\checkmark$|            |            |$\checkmark$|            | -->
 <!-- Table: Table 16: Summary of the results when the thresholding model selection was employed for all the solution path algorithms. -->
 
-### SDLL based results
+#### SDLL based results
 In this section, we give the simulation results when the *model.sdll* function from the package is employed at each of the solution path methods. The results are given in Tables 17 - 23 below and a summary of the results is given in Table 24. We note that for ID, the results are presented for the *sol.idetect* function (and not for the *sol.idetect_seq*), which is the one that should be used when Isolate-Detect is combined with the SDLL model selection algorithm of the *model.sdll* function. In addition, we do not present any results when the NOT solution path is employed due to the fact that it should not be used in combination with the *model.sdll* function.
 
 |  |  | $\hat{N} - N$ | | | | | |
@@ -2032,7 +2033,7 @@ For the noiseless (M13), we do not present the results in a table since there is
 |**(M12)**|            |$\checkmark$|$\checkmark$|            |
 Table: Table 24: Summary of the results when the SDLL model selection was employed for all the solution path algorithms.
 
-### Localised pruning based results
+#### Localised pruning based results
 In this section, we give the simulation results when the *model.lp* function from the package is employed at each of the solution path methods. The results are given in Tables 25 - 31 below and a summary of the results is given in Table 32. We do not present any results when the ID solution path is employed due to the fact that it should not be used in combination with the *model.lp* function. In order to present the results for (NC3), we had to set the value of *min.d* equal to 2, due to the fact that the length of the (NC3) signal is equal to 5.
 
 |  |  | $\hat{N} - N$ | | | | | |
@@ -2191,3 +2192,778 @@ For the noiseless (M13), NOT, TGUH, WBS, and WBS2 detect 39, 51, 52, 63 change-p
 |**(M10)**|$\checkmark$|            |$\checkmark$|            |
 |**(M12)**|            |$\checkmark$|            |$\checkmark$|
 Table: Table 32: Summary of the results when the localised pruning model selection was employed for all the solution path algorithms.
+
+## Continuous, piecewise-linear signals
+
+### Simulated signals
+The signals used in the simulation study are
+
+* (NC1) *No change-points*: length 300 with slope equal to 1 and no change-points. The standard deviation is $\sigma = 1$.
+
+* (NC2) *short signal, no change-points*: length 30 with slope equal to 1 and no change-points. The standard deviation is $\sigma = 1$.
+
+* (NC3) *long signal, no change-points*: length 3000 with slope equal to 1 and no change-points. The standard deviation is $\sigma = 1$.
+
+* (M1) *one change-point*: length 200 with one change-point in the middle were the slope goes from $0.5$ to $0$. The standard deviation is $\sigma = 1$.
+
+* (M2) *Trapezoid*: length 300 with 2 change-points at 100 and 200 with the slope taking the values $0.5, 0, -0.5$ in the three segments created. The standard deviation is $\sigma = 1$.
+
+* (M3) *Trapezoid with larger variance*: length 300 with 2 change-points at 100 and 200 with the slope taking the values $0.5, 0, -0.5$ in the three segments created. The standard deviation is $\sigma = 10$.
+
+* (M4) *trapezoid repetitive*: length 1500 with 14 change-points at 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400 with the values of the slope between change-points being equal to 0.25, 0, -0.25, 0.25, 0, -0.25, 0.25, 0, -0.25, 0.25, 0, -0.25, 0.25, 0, -0.25. The standard deviation of the noise is $\sigma = 6$.
+
+* (M5) *gradual changes*: length 240 with 5 change-points at 40, 80, 120, 160, 200 with slope values between change-points equal to 0.05, 0.1, 0.2, 0.4, 0.8, 1.6. The standard deviation of the noise is $\sigma = 0.3$.
+
+* (M6) *weak, long signal*: length 3000 with 2 change-point at 1000 and 2000 with slope values between change-points equal to 1, 0.95, 1. The standard deviation of the noise is $\sigma = 2$.
+
+
+### Simulation process
+We ran 100 replications for each one of the abovementioned signals and the frequency distribution of $\hat{N} - N$ for the ID and NOT solution path methods (combined with a model selection algorithm) is presented. As a measure of the accuracy of the detected locations, we provide Monte-Carlo estimates of the mean squared error, ${\rm MSE} = T^{-1}\sum_{t=1}^{T}{\rm E}\left(\hat{f}_t - f_t\right)^2$, where $\hat{f}_t$ is the ordinary least square approximation of $f_t$ between two successive change-points. The scaled Hausdorff distance, $d_H = n_s^{-1}\max\left\lbrace \max_j\min_k\left|r_j-\hat{r}_k\right|,\max_k\min_j\left|r_j-\hat{r}_k\right|\right\rbrace,$ where $n_s$ is the length of the largest segment, is also given in all examples apart from the signals (NC1) - (NC3), which are signals without any change-points. The average computational time for all methods is also provided.
+
+
+### Code for running the simulations
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```r
+library(breakfast)
+
+## For thresholding
+sim_thr_lin <- function(x, const = 1.4) {
+  setClass("cpt.est", representation(cpt="numeric", nocpt="numeric", mean="numeric",time="numeric"), prototype(cpt=numeric(0), nocpt=0, mean=numeric(0),time=numeric(0)))
+  
+  print("not")
+  notth <- new("cpt.est")
+  z <- model.thresh(sol.not(x, type = "lin.cont"), th.const = const)
+  if(z$cpts == 0){notth@cpt = 0
+  notth@nocpt = 0}
+  else{notth@cpt <- z$cpts
+  notth@nocpt <- z$no.of.cpt}
+  notth@mean <- z$est
+  notth@time <- system.time(model.thresh(sol.not(x, type = "lin.cont"), th.const = const))[[3]]
+  
+  print("idetect")
+  idetectth <- new("cpt.est")
+  z <- model.thresh(sol.idetect_seq(x, type = "lin.cont"), th.const = const)
+  if(z$cpts == 0){idetectth@cpt = 0
+  idetectth@nocpt = 0}
+  else{idetectth@cpt <- z$cpts
+  idetectth@nocpt <- z$no.of.cpt}
+  idetectth@mean <- z$est
+  idetectth@time <- system.time(model.thresh(sol.idetect_seq(x, type = "lin.cont"), th.const = const))[[3]]
+  
+  list(notth = notth, idetectth = idetectth)
+}
+
+
+sim.study.thr_lin <- function(signal, true.cpt=NULL,sigma, m = 100, seed = NULL, gen_const = 1.4) {
+  
+  setClass("est.eval", representation(avg.signal="numeric",mean="list",cpt="list",diff="matrix",dh="numeric",cptall="numeric",dnc="numeric", mse="numeric", time= "numeric"), prototype(dnc=numeric(m), mse=numeric(m),time=numeric(m),dh=numeric(m)))
+  
+  notth <- new("est.eval")
+  idetectth <- new("est.eval")
+  
+  no.of.cpt <- length(true.cpt)
+  n <- length(signal)
+  ns <- max(c(diff(true.cpt), length(signal)))
+  
+  if (!is.null(seed)) 
+    set.seed(seed)
+  
+
+  for (i in 1:m) {
+    
+    print(i)
+    x <- signal + sigma * rnorm(n)
+    
+    est <- sim_thr_lin(x, const = gen_const)
+    
+    notth@dnc[i] <- est$notth@nocpt - no.of.cpt
+    notth@mean[[i]] <- est$notth@mean
+    notth@mse[i] <- mean((est$notth@mean - signal)^2)
+    notth@cpt[[i]] <- est$notth@cpt
+    notth@diff <- abs(matrix(est$notth@cpt,nrow=no.of.cpt,ncol=length(est$notth@cpt),byr=T)-matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$notth@cpt),byr=F))
+    notth@dh[i] <- max(apply(notth@diff,1,min),apply(notth@diff,2,min))/ns
+    notth@time[i] <- est$notth@time
+    
+    idetectth@dnc[i] <- est$idetectth@nocpt - no.of.cpt
+    idetectth@mean[[i]] <- est$idetectth@mean
+    idetectth@mse[i] <- mean((est$idetectth@mean - signal)^2)
+    idetectth@cpt[[i]] <- est$idetectth@cpt
+    idetectth@diff <- abs(matrix(est$idetectth@cpt,nrow=no.of.cpt,ncol=length(est$idetectth@cpt),byr=T)-matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$idetectth@cpt),byr=F))
+    idetectth@dh[i] <- max(apply(idetectth@diff,1,min),apply(idetectth@diff,2,min))/ns
+    idetectth@time[i] <- est$idetectth@time
+    
+    gc()
+  }
+  
+  list(notth=notth, idetectth = idetectth)
+}
+
+
+## The function used for the comparisons in the case of information criterion
+sim_ic <- function(x, par.max = 25) {
+  setClass("cpt.est", representation(cpt="numeric", nocpt="numeric", mean="numeric",time="numeric"), prototype(cpt=numeric(0), nocpt=0, mean=numeric(0),time=numeric(0)))
+  
+  print("not")
+  notic <- new("cpt.est")
+  z <- model.ic(sol.not(x, type = "lin.cont"), q.max = par.max)
+  if(z$cpts == 0){notic@cpt = 0
+  notic@nocpt = 0}
+  else{notic@cpt <- z$cpts
+  notic@nocpt <- z$no.of.cpt}
+  notic@mean <- z$est
+  notic@time <- system.time(model.ic(sol.not(x, type = "lin.cont"), q.max = par.max))[[3]]
+  
+  print("idetect")
+  idetectic <- new("cpt.est")
+  z <- model.ic(sol.idetect(x, type = "lin.cont"), q.max = par.max)
+  if(z$cpts == 0){idetectic@cpt = 0
+  idetectic@nocpt = 0}
+  else{idetectic@cpt <- z$cpts
+  idetectic@nocpt <- z$no.of.cpt}
+  idetectic@mean <- z$est
+  idetectic@time <- system.time(model.ic(sol.idetect(x, type = "lin.cont"), q.max = par.max))[[3]]
+  
+  list(notic = notic, idetectic = idetectic)
+}
+
+
+sim.study.ic <- function(signal, true.cpt=NULL,sigma, m = 100, seed = NULL, max.par = 25) {
+  
+  setClass("est.eval", representation(avg.signal="numeric",mean="list",cpt="list",diff="matrix",dh="numeric",cptall="numeric",dnc="numeric", mse="numeric", time= "numeric"), prototype(dnc=numeric(m), mse=numeric(m),time=numeric(m),dh=numeric(m)))
+  
+  notic <- new("est.eval")
+  idetectic <- new("est.eval")
+  
+  no.of.cpt <- length(true.cpt)
+  n <- length(signal)
+  ns <- max(c(diff(true.cpt), length(signal)))
+  
+  if (!is.null(seed)) 
+    set.seed(seed)
+  for (i in 1:m) {
+    
+    print(i)
+    x <- signal + sigma * rnorm(n)
+    
+    est <- sim_ic(x, par.max = max.par)
+    
+    notic@dnc[i] <- est$notic@nocpt - no.of.cpt
+    notic@mean[[i]] <- est$notic@mean
+    notic@mse[i] <- mean((est$notic@mean - signal)^2)
+    notic@cpt[[i]] <- est$notic@cpt
+    notic@diff <- abs(matrix(est$notic@cpt,nrow=no.of.cpt,ncol=length(est$notic@cpt),byr=T)-matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$notic@cpt),byr=F))
+    notic@dh[i] <- max(apply(notic@diff,1,min),apply(notic@diff,2,min))/ns
+    notic@time[i] <- est$notic@time
+    
+    idetectic@dnc[i] <- est$idetectic@nocpt - no.of.cpt
+    idetectic@mean[[i]] <- est$idetectic@mean
+    idetectic@mse[i] <- mean((est$idetectic@mean - signal)^2)
+    idetectic@cpt[[i]] <- est$idetectic@cpt
+    idetectic@diff <- abs(matrix(est$idetectic@cpt,nrow=no.of.cpt,ncol=length(est$idetectic@cpt),byr=T)-matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$idetectic@cpt),byr=F))
+    idetectic@dh[i] <- max(apply(idetectic@diff,1,min),apply(idetectic@diff,2,min))/ns
+    idetectic@time[i] <- est$idetectic@time
+    
+
+  }
+  
+  list(notic=notic, idetectic = idetectic)
+}
+
+## The function used for the comparisons in the case of sdll
+sim_sdll <- function(x) {
+  setClass("cpt.est", representation(cpt="numeric", nocpt="numeric", mean="numeric",time="numeric"), prototype(cpt=numeric(0), nocpt=0, mean=numeric(0),time=numeric(0)))
+  
+  print("idetect")
+  idetectsdll <- new("cpt.est")
+  z <- model.sdll(sol.idetect(x, type = "lin.cont", thr_ic_lin = 1))
+  if(length(z$cpts) == 0){idetectsdll@cpt = 0
+  idetectsdll@nocpt = 0}
+  else{idetectsdll@cpt <- z$cpts
+  idetectsdll@nocpt <- z$no.of.cpt}
+  idetectsdll@mean <- z$est
+  idetectsdll@time <- system.time(model.sdll(sol.idetect(x, type = "lin.cont", thr_ic_lin = 1)))[[3]]
+  
+  list(idetectsdll = idetectsdll)
+}
+
+
+sim.study.sdll <- function(signal, true.cpt=NULL,sigma, m = 100, seed = NULL) {
+  
+setClass("est.eval", representation(avg.signal="numeric",mean="list",cpt="list",diff="matrix",dh="numeric",cptall="numeric",dnc="numeric", mse="numeric", time= "numeric"), prototype(dnc=numeric(m), mse=numeric(m),time=numeric(m),dh=numeric(m)))
+  
+  idetectsdll <- new("est.eval")
+
+  no.of.cpt <- length(true.cpt)
+  n <- length(signal)
+  ns <- max(c(diff(true.cpt), length(signal)))
+  
+  if (!is.null(seed)) 
+    set.seed(seed)
+  
+  for (i in 1:m) {
+    
+    print(i)
+    x <- signal + sigma * rnorm(n)
+    
+    est <- sim_sdll(x)
+    
+    idetectsdll@dnc[i] <- est$idetectsdll@nocpt - no.of.cpt
+    idetectsdll@mean[[i]] <- est$idetectsdll@mean
+    idetectsdll@mse[i] <- mean((est$idetectsdll@mean - signal)^2)
+    idetectsdll@cpt[[i]] <- est$idetectsdll@cpt
+    idetectsdll@diff <- abs(matrix(est$idetectsdll@cpt,nrow=no.of.cpt,ncol=length(est$idetectsdll@cpt),byr=T)-matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$idetectsdll@cpt),byr=F))
+    idetectsdll@dh[i] <- max(apply(idetectsdll@diff,1,min),apply(idetectsdll@diff,2,min))/ns
+    idetectsdll@time[i] <- est$idetectsdll@time
+    
+  }
+  
+  list(idetectsdll = idetectsdll)
+}
+
+## Signals for simulation study
+
+seed.temp <- 12
+no_cpt <- seq(1,300,1)
+
+lin.SIMR0_thr <- sim.study.thr_lin(no_cpt, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+lin.SIMR0_ic <- sim.study.ic(no_cpt, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+lin.SIMR0_sdll <- sim.study.sdll(no_cpt, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+
+####
+no_cpt_2 <- seq(1,30,1)
+
+lin.SIMR0_2_thr <- sim.study.thr_lin(no_cpt_2, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+lin.SIMR0_2_ic <- sim.study.ic(no_cpt_2, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+lin.SIMR0_2_sdll <- sim.study.sdll(no_cpt_2, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+
+####
+
+no_cpt_3 <- seq(1,3000,1)
+
+lin.SIMR0_3_thr <- sim.study.thr_lin(no_cpt_3, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+lin.SIMR0_3_ic <- sim.study.ic(no_cpt_3, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+lin.SIMR0_3_sdll <- sim.study.sdll(no_cpt_3, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+
+####
+
+one_cpt <- c(seq(0,49.5,0.5), rep(49.5,100))
+lin.SIMR1_thr <- sim.study.thr_lin(one_cpt, sigma = 1, seed = seed.temp, true.cpt = c(100))
+lin.SIMR1_ic <- sim.study.ic(one_cpt, sigma = 1, seed = seed.temp, true.cpt = c(100))
+lin.SIMR1_sdll <- sim.study.sdll(one_cpt, sigma = 1, seed = seed.temp, true.cpt = c(100))
+
+####
+
+trapezoid <- c(seq(0,49.5,0.5), rep(49.5, 100), seq(49,-0.5,-0.5))
+plot.ts(trapezoid + rnorm(300, sd = 10))
+lin.SIMR2_thr <- sim.study.thr_lin(trapezoid, sigma = 1, seed = seed.temp, true.cpt = c(100,200))
+lin.SIMR2_ic <- sim.study.ic(trapezoid, sigma = 1, seed = seed.temp, true.cpt = c(100,200))
+lin.SIMR2_sdll <- sim.study.sdll(trapezoid, sigma = 1, seed = seed.temp, true.cpt = c(100,200))
+
+lin.SIMR2_10_thr <- sim.study.thr_lin(trapezoid, sigma = 10, seed = seed.temp, true.cpt = c(100,200))
+lin.SIMR2_10_ic <- sim.study.ic(trapezoid, sigma = 10, seed = seed.temp, true.cpt = c(100,200))
+lin.SIMR2_10_sdll <- sim.study.sdll(trapezoid, sigma = 10, seed = seed.temp, true.cpt = c(100,200))
+
+
+####
+trapezoid2 <- c(seq(0,24.75,0.25), rep(24.75, 100), seq(24.5,-0.25,-0.25))
+small.trapezoid.teeth <- rep(trapezoid2, 5)
+lin.SIMR3_thr <- sim.study.thr_lin(small.trapezoid.teeth, sigma = 6, seed = seed.temp, true.cpt = seq(100,1400,100))
+lin.SIMR3_ic <- sim.study.ic(small.trapezoid.teeth, sigma = 6, seed = seed.temp, true.cpt = seq(100,1400,100))
+lin.SIMR3_sdll <- sim.study.sdll(small.trapezoid.teeth, sigma = 6, seed = seed.temp, true.cpt = seq(100,1400,100))
+
+####
+five_cpts_difficult <- c(seq(0,1.95,0.05), seq(2.05,5.95,0.1), seq(6.15,13.95,0.2), seq(14.35, 29.95, 0.4), seq(30.75, 61.95,0.8), seq(63.55, 125.95, 1.6))
+lin.SIMR4_thr <- sim.study.thr_lin(five_cpts_difficult, sigma = 0.3, seed = seed.temp, true.cpt = seq(40,200,40))
+lin.SIMR4_ic <- sim.study.ic(five_cpts_difficult, sigma = 0.3, seed = seed.temp, true.cpt = seq(40,200,40))
+lin.SIMR4_sdll <- sim.study.sdll(five_cpts_difficult, sigma = 0.3, seed = seed.temp, true.cpt = seq(40,200,40))
+
+####
+weaker_signal_1 <- c(seq(1,1000,1), seq(1000.95,1950,0.95), seq(1951,2950,1))
+lin.SIMR0_8_thr <- sim.study.thr_lin(weaker_signal_1, sigma = 2, seed = seed.temp, true.cpt = c(1000,2000))
+lin.SIMR0_8_ic <- sim.study.ic(weaker_signal_1, sigma = 2, seed = seed.temp, true.cpt = c(1000,2000))
+lin.SIMR0_8_sdll <- sim.study.sdll(weaker_signal_1, sigma = 2, seed = seed.temp, true.cpt = c(1000,2000))
+```
+
+### Detailed results
+
+#### Information-criterion based results
+In this section, we give the simulation results when the *model.ic* function from the package is employed at each of the solution path methods. The results are given in Tables 33 and 34 below. We note that for ID, the results are presented for the *sol.idetect* function (and not for the *sol.idetect_seq*), which is the one that should be used when Isolate-Detect is combined with the information-criterion model selection algorithm of the *model.ic* function.
+
+|        |           |$\hat{N} - N$| | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$0$|$1$|$2$| $\geq 3$ | MSE                    | Time (s)|
+| ID     | **(NC1)** |100|  0|  0|    0     |   6 $\times 10^{-3}$   |  0.011   |
+| NOT    |           | 99|  1|  0|    0     |   6 $\times 10^{-3}$   |  0.043   |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     | **(NC2)** | 98|  1|  1|    0     |  50 $\times 10^{-3}$   |  0.003  |
+| NOT    |           | 95|  4|  1|    0     |  55 $\times 10^{-3}$   |  0.017  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     | **(NC3)** |100|  0|  0|    0     |  1 $\times 10^{-3}$    |  0.382  |
+| NOT    |           |100|  0|  0|    0     |  1 $\times 10^{-3}$    |  0.178  |
+Table: Table 33: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1)-(NC3) of the continuous piecewise-linear case. Also the average MSE and computational times for each method are given.
+
+
+|  |  | | | |$\hat{N} - N$| | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)|
+| ID     | **(M1)**  |       0 |     0|   0|97 |3  | 0 |     0  |0.062              |9 $\times10^{-3}$   | 0.011  |
+| NOT    |           |       0 |     0|   0|97 |3  | 0 |     0  |0.020              |7 $\times10^{-3}$   | 0.054  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M2)**  |       0 |     0|   0|94 |6  | 0 |     0  |94 $\times 10^{-3}$|11 $\times 10^{-3}$ | 0.013  |
+| NOT    |           |       0 |     0|   0|100|0  | 0 |     0  |21 $\times 10^{-3}$|2  $\times 10^{-3}$ | 0.137  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M3)**  |       0 |     0|   0|97 |3  | 0 |     0  |3.639              |48  $\times 10^{-3}$| 0.012  |
+| NOT    |           |       0 |     0|   0|100|0  | 0 |     0  |2.086              |25  $\times 10^{-3}$| 0.077  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M4)**  |       0 |     1|   7|89 |3  | 0 |     0  |1.642              |20 $\times 10^{-3}$ | 0.044  |
+| NOT    |           |       0 |     0|  11|85 |3  | 1 |     0  |1.270              |18 $\times 10^{-3}$ | 0.368  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M5)**  |       0 |     0|   0|92 |8  | 0 |     0  |11 $\times10^{-3}$ |21 $\times 10^{-3}$ | 0.014  | 
+| NOT    |           |       0 |     0|   5|87 |7  | 1 |     0  |10 $\times10^{-3}$ |23 $\times 10^{-3}$ | 0.129  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M6)**  |       0 |     0|   0|96 |4  | 0 |     0  |45 $\times10^{-3}$ |6  $\times 10^{-3}$ | 0.124  |
+| NOT    |           |       0 |     0|   0|100|0  | 0 |     0  |8  $\times10^{-3}$ |1  $\times 10^{-3}$ | 0.435  |
+Table: Table 34: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the continuous, piecewise-linear signals (M1)-(M6). The average MSE, $d_H$ and computational time are also given.
+
+#### Thresholding based results
+In this section, we give the simulation results when the *model.thresh* function from the package is employed at each of the solution path methods. The results are given in Tables 35 and 36 below. We note that for ID, the results are presented for the *sol.idetect_seq* function (and not for the *sol.idetect*), which is the one that should be used when Isolate-Detect is combined with the thresholding model selection algorithm of the *model.thresh* function.
+
+|        |           |$\hat{N} - N$| | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$0$|$1$|$2$| $\geq 3$ | MSE                    | Time (s)|
+| ID     | **(NC1)** | 99|  1|  0|    0     |  6 $\times 10^{-3}$    |  0.018  |
+| NOT    |           | 95|  5|  0|    0     |  6 $\times 10^{-3}$    |  0.023  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     | **(NC2)** | 91|  6|  3|    0     |  53 $\times 10^{-3}$   |  0.004  |
+| NOT    |           | 81| 11|  6|    2     |  59 $\times 10^{-3}$   |  0.003  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     | **(NC3)** |100|  0|  0|    0     |  1 $\times 10^{-3}$    |  0.529  |
+| NOT    |           |100|  0|  0|    0     |  1 $\times 10^{-3}$    |  0.095  |
+Table: Table 35: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1)-(NC3) of the continuous piecewise-linear case. Also the average MSE and computational times for each method are given.
+
+
+|  |  | | | |$\hat{N} - N$| | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)|
+| ID     | **(M1)**  |       0 |     0|   0|95 |5  | 0 |     0  |0.066              |12 $\times10^{-3}$  | 0.003  |
+| NOT    |           |       0 |     0|   3|83 |13 | 0 |     1  |1.649              |44 $\times10^{-3}$  | 0.017  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M2)**  |       0 |     0|   0|96 |4  | 0 |     0  |84 $\times 10^{-3}$|9  $\times 10^{-3}$ | 0.002  |
+| NOT    |           |       0 |     0|   0|94 |6  | 0 |     0  |136$\times 10^{-3}$|14  $\times 10^{-3}$| 0.027  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M3)**  |       0 |     0|   0|98 |2  | 0 |     0  |3.355              |43  $\times 10^{-3}$| 0.005  |
+| NOT    |           |       0 |     0|   0|92 |8  | 0 |     0  |4.471              |59  $\times 10^{-3}$| 0.021  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M4)**  |       0 |     0|   7|92 |1  | 0 |     0  |1.459              |19 $\times 10^{-3}$ | 0.019  |
+| NOT    |           |       0 |     3|  24|73 |0  | 0 |     0  |2.042              |26 $\times 10^{-3}$ | 0.061  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M5)**  |       0 |     0|   0|97 |3  | 0 |     0  |12 $\times10^{-3}$ |18 $\times 10^{-3}$ | 0.004  | 
+| NOT    |           |       0 |     0|   1|94 |4  | 1 |     0  |23 $\times10^{-3}$ |27 $\times 10^{-3}$ | 0.030  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M6)**  |       0 |     0|   0|98 |2  | 0 |     0  |41 $\times10^{-3}$ |5  $\times 10^{-3}$ | 0.076  |
+| NOT    |           |       0 |     0|   0|98 |2  | 0 |     0  |55 $\times10^{-3}$ |6  $\times 10^{-3}$ | 0.105  |
+Table: Table 36: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the continuous, piecewise-linear signals (M1)-(M6). The average MSE, $d_H$ and computational time are also given.
+
+
+#### SDLL based results
+In this section, we give the simulation results when the *model.sdll* function from the package is employed at each of the solution path methods. The results are given in Tables 37 and 38. We note that for ID, the results are presented for the *sol.idetect* function (and not for the *sol.idetect_seq*), which is the one that should be used when Isolate-Detect is combined with the SDLL model selection algorithm of the *model.sdll* function. In addition, we do not present any results when the NOT solution path is employed due to the fact that it should not be used in combination with the *model.sdll* function.
+
+|        |           |$\hat{N} - N$| | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$0$|$1$|$2$| $\geq 3$ | MSE                    | Time (s)|
+| ID     | **(NC1)** | 95|  3|  0|    2     |  6 $\times 10^{-3}$    |  0.006  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     | **(NC2)** | 87|  6|  2|    5     |  67 $\times 10^{-3}$   |  0.003  |
+|        |           |   |   |   |          |                        |         |
+|        |           |   |   |   |          |                        |         |
+| ID     | **(NC3)** | 94|  5|  1|    0     |  1 $\times 10^{-3}$    |  0.307  |
+Table: Table 37: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1)-(NC3) of the continuous piecewise-linear case. Also the average MSE and computational times are given.
+
+
+|  |  | | | |$\hat{N} - N$| | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)|
+| ID     | **(M1)**  |       0 |     0|   0|94 |3  | 1 |     2  |87 $\times 10^{-3}$|23 $\times10^{-3}$  | 0.004  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M2)**  |       0 |     0|   0|93 |5  | 1 |     1  |103$\times 10^{-3}$|19 $\times 10^{-3}$ | 0.004  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M3)**  |       0 |     0|   0|94 |2  | 3 |     1  |3.813              |55  $\times 10^{-3}$| 0.005  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M4)**  |       0 |     0|   9|88 |2  | 1 |     0  |1.890              |22 $\times 10^{-3}$ | 0.025  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M5)**  |       0 |     0|   0|91 |7  | 0 |     2  |13 $\times10^{-3}$ |26 $\times 10^{-3}$ | 0.006  | 
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M6)**  |       0 |     0|   0|93 |5  | 2 |     0  |71 $\times10^{-3}$ |14 $\times 10^{-3}$ | 0.100  |
+Table: Table 38: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the continuous, piecewise-linear signals (M1)-(M6). The average MSE, $d_H$ and computational time are also given.
+
+## Discontinuous, piecewise-linear signals
+
+### Simulated signals
+The signals used in the simulation study are
+
+* (NC1) *No change-points*: length 300 with slope equal to 1 and no change-points. The standard deviation is $\sigma = 1$.
+
+* (M1) *one change-point*: length 200 with one change-point in the middle were the slope goes from $0.5$ to $0$ and there is also a jump of magnitude 10.5. The standard deviation is $\sigma = 1$.
+
+* (M2) *Trapezoid*: length 250 with 2 change-points at 50 and 200 with the slope taking the values $1, 0, -1$ in the three segments created. At both change-points we also introduce a jump of magnitude 50. The standard deviation is $\sigma = 1$.
+
+* (M3) *Trapezoid with larger variance*: length 250 with 2 change-points at 50 and 200 with the slope taking the values $1, 0, -1$ in the three segments created. At both change-points we also introduce a jump of magnitude 50. The standard deviation is $\sigma = 15$.
+
+* (M4) *trapezoid repetitive*: length 1250 with 14 change-points at 50, 200, 250, 300, 450, 500, 550, 700, 750, 800, 950, 1000, 1050, 1200 with the values of the slope between change-points being equal to 1, 0, -1, 1, 0, -1, 1, 0, -1, 1, 0, -1, 1, 0, -1. At 50, 200, 300, 450, 550, 700, 800, 950, 1050, and 1200 there are also jumps of magnitudes equal to 50. The standard deviation of the noise is $\sigma = 15$.
+
+### Simulation process
+We ran 100 replications for each one of the abovementioned signals and the frequency distribution of $\hat{N} - N$ for the ID and NOT solution path methods (combined with a model selection algorithm) is presented. As a measure of the accuracy of the detected locations, we provide Monte-Carlo estimates of the mean squared error, ${\rm MSE} = T^{-1}\sum_{t=1}^{T}{\rm E}\left(\hat{f}_t - f_t\right)^2$, where $\hat{f}_t$ is the ordinary least square approximation of $f_t$ between two successive change-points. The scaled Hausdorff distance, $d_H = n_s^{-1}\max\left\lbrace \max_j\min_k\left|r_j-\hat{r}_k\right|,\max_k\min_j\left|r_j-\hat{r}_k\right|\right\rbrace,$ where $n_s$ is the length of the largest segment, is also given in all examples apart from the signal (NC1), which does not have any change-points. The average computational time for both methods is also provided.
+
+
+### Code for running the simulations
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```r
+## For thresholding
+sim_thr_lin_dis <- function(x, const = 1.4) {
+  setClass("cpt.est", representation(cpt="numeric", nocpt="numeric", mean="numeric",time="numeric"), prototype(cpt=numeric(0), nocpt=0, mean=numeric(0),time=numeric(0)))
+  
+  print("not")
+  notth <- new("cpt.est")
+  z <- model.thresh(sol.not(x, type = "lin.discont"), th.const = const)
+  if(z$cpts == 0){notth@cpt = 0
+  notth@nocpt = 0}
+  else{notth@cpt <- z$cpts
+  notth@nocpt <- z$no.of.cpt}
+  notth@mean <- z$est
+  notth@time <- system.time(model.thresh(sol.not(x, type = "lin.discont"), th.const = const))[[3]]
+  
+  print("idetect")
+  idetectth <- new("cpt.est")
+  z <- model.thresh(sol.idetect_seq(x, type = "lin.discont"), th.const = const)
+  if(z$cpts == 0){idetectth@cpt = 0
+  idetectth@nocpt = 0}
+  else{idetectth@cpt <- z$cpts
+  idetectth@nocpt <- z$no.of.cpt}
+  idetectth@mean <- z$est
+  idetectth@time <- system.time(model.thresh(sol.idetect_seq(x, type = "lin.discont"), th.const = const))[[3]]
+  
+  list(notth = notth, idetectth = idetectth)
+}
+
+
+sim.study.thr_lin_dis <- function(signal, true.cpt=NULL,sigma, m = 100, seed = NULL, gen_const = 1.4) {
+  
+  setClass("est.eval", representation(avg.signal="numeric",mean="list",cpt="list",diff="matrix",dh="numeric",cptall="numeric",dnc="numeric", mse="numeric", time= "numeric"), prototype(dnc=numeric(m), mse=numeric(m),time=numeric(m),dh=numeric(m)))
+  
+  notth <- new("est.eval")
+  idetectth <- new("est.eval")
+  
+  no.of.cpt <- length(true.cpt)
+  n <- length(signal)
+  ns <- max(c(diff(true.cpt), length(signal)))
+  
+  if (!is.null(seed)) 
+    set.seed(seed)
+  
+  
+  for (i in 1:m) {
+    
+    print(i)
+    x <- signal + sigma * rnorm(n)
+    
+    est <- sim_thr_lin_dis(x, const = gen_const)
+    
+    notth@dnc[i] <- est$notth@nocpt - no.of.cpt
+    notth@mean[[i]] <- est$notth@mean
+    notth@mse[i] <- mean((est$notth@mean - signal)^2)
+    notth@cpt[[i]] <- est$notth@cpt
+    notth@diff <- abs(matrix(est$notth@cpt,nrow=no.of.cpt,ncol=length(est$notth@cpt),byr=T)-matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$notth@cpt),byr=F))
+    notth@dh[i] <- max(apply(notth@diff,1,min),apply(notth@diff,2,min))/ns
+    notth@time[i] <- est$notth@time
+    
+    idetectth@dnc[i] <- est$idetectth@nocpt - no.of.cpt
+    idetectth@mean[[i]] <- est$idetectth@mean
+    idetectth@mse[i] <- mean((est$idetectth@mean - signal)^2)
+    idetectth@cpt[[i]] <- est$idetectth@cpt
+    idetectth@diff <- abs(matrix(est$idetectth@cpt,nrow=no.of.cpt,ncol=length(est$idetectth@cpt),byr=T)-matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$idetectth@cpt),byr=F))
+    idetectth@dh[i] <- max(apply(idetectth@diff,1,min),apply(idetectth@diff,2,min))/ns
+    idetectth@time[i] <- est$idetectth@time
+    
+    gc()
+  }
+  
+  list(notth=notth, idetectth = idetectth)
+}
+
+
+## The function used for the comparisons in the case of information criterion
+sim_ic_dis <- function(x, par.max = 25) {
+  setClass("cpt.est", representation(cpt="numeric", nocpt="numeric", mean="numeric",time="numeric"), prototype(cpt=numeric(0), nocpt=0, mean=numeric(0),time=numeric(0)))
+  
+  print("not")
+  notic <- new("cpt.est")
+  z <- model.ic(sol.not(x, type = "lin.discont"), q.max = par.max)
+  if(z$cpts == 0){notic@cpt = 0
+  notic@nocpt = 0}
+  else{notic@cpt <- z$cpts
+  notic@nocpt <- z$no.of.cpt}
+  notic@mean <- z$est
+  notic@time <- system.time(model.ic(sol.not(x, type = "lin.discont"), q.max = par.max))[[3]]
+  
+  print("idetect")
+  idetectic <- new("cpt.est")
+  z <- model.ic(sol.idetect(x, type = "lin.discont"), q.max = par.max)
+  if(z$cpts == 0){idetectic@cpt = 0
+  idetectic@nocpt = 0}
+  else{idetectic@cpt <- z$cpts
+  idetectic@nocpt <- z$no.of.cpt}
+  idetectic@mean <- z$est
+  idetectic@time <- system.time(model.ic(sol.idetect(x, type = "lin.discont"), q.max = par.max))[[3]]
+  
+  list(notic = notic, idetectic = idetectic)
+}
+
+
+sim.study.ic_dis <- function(signal, true.cpt=NULL,sigma, m = 100, seed = NULL, max.par = 25) {
+  
+  setClass("est.eval", representation(avg.signal="numeric",mean="list",cpt="list",diff="matrix",dh="numeric",cptall="numeric",dnc="numeric", mse="numeric", time= "numeric"), prototype(dnc=numeric(m), mse=numeric(m),time=numeric(m),dh=numeric(m)))
+  
+  notic <- new("est.eval")
+  idetectic <- new("est.eval")
+  
+  no.of.cpt <- length(true.cpt)
+  n <- length(signal)
+  ns <- max(c(diff(true.cpt), length(signal)))
+  
+  if (!is.null(seed)) 
+    set.seed(seed)
+  for (i in 1:m) {
+    
+    print(i)
+    x <- signal + sigma * rnorm(n)
+    
+    est <- sim_ic_dis(x, par.max = max.par)
+    
+    notic@dnc[i] <- est$notic@nocpt - no.of.cpt
+    notic@mean[[i]] <- est$notic@mean
+    notic@mse[i] <- mean((est$notic@mean - signal)^2)
+    notic@cpt[[i]] <- est$notic@cpt
+    notic@diff <- abs(matrix(est$notic@cpt,nrow=no.of.cpt,ncol=length(est$notic@cpt),byr=T)-matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$notic@cpt),byr=F))
+    notic@dh[i] <- max(apply(notic@diff,1,min),apply(notic@diff,2,min))/ns
+    notic@time[i] <- est$notic@time
+    
+    idetectic@dnc[i] <- est$idetectic@nocpt - no.of.cpt
+    idetectic@mean[[i]] <- est$idetectic@mean
+    idetectic@mse[i] <- mean((est$idetectic@mean - signal)^2)
+    idetectic@cpt[[i]] <- est$idetectic@cpt
+    idetectic@diff <- abs(matrix(est$idetectic@cpt,nrow=no.of.cpt,ncol=length(est$idetectic@cpt),byr=T)-matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$idetectic@cpt),byr=F))
+    idetectic@dh[i] <- max(apply(idetectic@diff,1,min),apply(idetectic@diff,2,min))/ns
+    idetectic@time[i] <- est$idetectic@time
+    
+    
+  }
+  
+  list(notic=notic, idetectic = idetectic)
+}
+
+## The function used for the comparisons in the case of sdll
+sim_sdll_dis <- function(x) {
+  setClass("cpt.est", representation(cpt="numeric", nocpt="numeric", mean="numeric",time="numeric"), prototype(cpt=numeric(0), nocpt=0, mean=numeric(0),time=numeric(0)))
+  
+  print("idetect")
+  idetectsdll <- new("cpt.est")
+  z <- model.sdll(sol.idetect(x, type = "lin.discont", thr_ic_lin = 1))
+  if(length(z$cpts) == 0){idetectsdll@cpt = 0
+  idetectsdll@nocpt = 0}
+  else{idetectsdll@cpt <- z$cpts
+  idetectsdll@nocpt <- z$no.of.cpt}
+  idetectsdll@mean <- z$est
+  idetectsdll@time <- system.time(model.sdll(sol.idetect(x, type = "lin.discont", thr_ic_lin = 1)))[[3]]
+
+  list(idetectsdll = idetectsdll)
+}
+
+
+sim.study.sdll_dis <- function(signal, true.cpt=NULL,sigma, m = 100, seed = NULL) {
+  
+  setClass("est.eval", representation(avg.signal="numeric",mean="list",cpt="list",diff="matrix",dh="numeric",cptall="numeric",dnc="numeric", mse="numeric", time= "numeric"), prototype(dnc=numeric(m), mse=numeric(m),time=numeric(m),dh=numeric(m)))
+  
+  idetectsdll <- new("est.eval")
+
+  no.of.cpt <- length(true.cpt)
+  n <- length(signal)
+  ns <- max(c(diff(true.cpt), length(signal)))
+  
+  if (!is.null(seed)) 
+    set.seed(seed)
+  
+  for (i in 1:m) {
+    
+    print(i)
+    x <- signal + sigma * rnorm(n)
+    
+    est <- sim_sdll_dis(x)
+    
+    idetectsdll@dnc[i] <- est$idetectsdll@nocpt - no.of.cpt
+    idetectsdll@mean[[i]] <- est$idetectsdll@mean
+    idetectsdll@mse[i] <- mean((est$idetectsdll@mean - signal)^2)
+    idetectsdll@cpt[[i]] <- est$idetectsdll@cpt
+    idetectsdll@diff <- abs(matrix(est$idetectsdll@cpt,nrow=no.of.cpt,ncol=length(est$idetectsdll@cpt),byr=T)-matrix(true.cpt,nrow=no.of.cpt,ncol=length(est$idetectsdll@cpt),byr=F))
+    idetectsdll@dh[i] <- max(apply(idetectsdll@diff,1,min),apply(idetectsdll@diff,2,min))/ns
+    idetectsdll@time[i] <- est$idetectsdll@time
+    
+  }
+  
+  list(idetectsdll = idetectsdll)
+}
+
+## Signals for simulation study
+
+seed.temp <- 1
+no_cpt <- seq(1,300,1)
+
+lin.SIMR0_thr <- sim.study.thr_lin_dis(no_cpt, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+lin.SIMR0_ic <- sim.study.ic_dis(no_cpt, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+lin.SIMR0_sdll <- sim.study.sdll_dis(no_cpt, sigma = 1, seed = seed.temp, true.cpt = integer(0))
+
+####
+
+one_cpt <- c(seq(0,49.5,0.5), rep(60,100))
+lin.SIMR1_thr <- sim.study.thr_lin_dis(one_cpt, sigma = 1, seed = seed.temp, true.cpt = c(100))
+lin.SIMR1_ic <- sim.study.ic_dis(one_cpt, sigma = 1, seed = seed.temp, true.cpt = c(100))
+lin.SIMR1_sdll <- sim.study.sdll_dis(one_cpt, sigma = 1, seed = seed.temp, true.cpt = c(100))
+
+####
+
+trapezoid <- c(seq(0,49.5,0.5), rep(60, 100), seq(49,-0.5,-0.5))
+lin.SIMR2_thr <- sim.study.thr_lin_dis(trapezoid, sigma = 1, seed = seed.temp, true.cpt = c(100,200))
+lin.SIMR2_ic <- sim.study.ic_dis(trapezoid, sigma = 1, seed = seed.temp, true.cpt = c(100,200))
+lin.SIMR2_sdll <- sim.study.sdll_dis(trapezoid, sigma = 1, seed = seed.temp, true.cpt = c(100,200))
+
+lin.SIMR2_10_thr <- sim.study.thr_lin_dis(trapezoid, sigma = 10, seed = seed.temp, true.cpt = c(100,200))
+lin.SIMR2_10_ic <- sim.study.ic_dis(trapezoid, sigma = 10, seed = seed.temp, true.cpt = c(100,200))
+lin.SIMR2_10_sdll <- sim.study.sdll_dis(trapezoid, sigma = 10, seed = seed.temp, true.cpt = c(100,200))
+
+
+####
+trapezoid2 <- c(seq(0,24.75,0.25), rep(35, 100), seq(24.75,0,-0.25))
+small.trapezoid.teeth <- rep(trapezoid2, 5) ## 14 change-points with length 
+lin.SIMR3_thr <- sim.study.thr_lin_dis(small.trapezoid.teeth, sigma = 6, seed = seed.temp, true.cpt = seq(100,1400,100))
+lin.SIMR3_ic <- sim.study.ic_dis(small.trapezoid.teeth, sigma = 6, seed = seed.temp, true.cpt = seq(100,1400,100))
+lin.SIMR3_sdll <- sim.study.sdll_dis(small.trapezoid.teeth, sigma = 6, seed = seed.temp, true.cpt = seq(100,1400,100))
+```
+
+### Detailed results
+
+#### Information-criterion based results
+In this section, we give the simulation results when the *model.ic* function from the package is employed at each of the solution path methods. The results are given in Tables 39 and 40 below. We note that for ID, the results are presented for the *sol.idetect* function (and not for the *sol.idetect_seq*), which is the one that should be used when Isolate-Detect is combined with the information-criterion model selection algorithm of the *model.ic* function.
+
+|        |           |$\hat{N} - N$| | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$0$|$1$|$2$| $\geq 3$ | MSE                    | Time (s)|
+| ID     | **(NC1)** | 98|  2|  0|    0     |  89 $\times 10^{-3}$   |  0.176  |
+| NOT    |           | 98|  2|  0|    0     |  89 $\times 10^{-3}$   |  0.043  |
+Table: Table 39: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1). Also the average MSE and computational times for each method are given.
+
+
+|  |  | | | |$\hat{N} - N$| | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)|
+| ID     | **(M1)**  |       0 |     0|   0|99 |1  | 0 |     0  |0.035              |4  $\times10^{-4}$  | 0.038  |
+| NOT    |           |       0 |     0|   0|99 |1  | 0 |     0  |0.030              |4  $\times10^{-4}$  | 0.050  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M2)**  |       0 |     0|   0|98 |2  | 0 |     0  |0.060              |5 $\times 10^{-3}$  | 0.053  |
+| NOT    |           |       0 |     0|   0|98 |2  | 0 |     0  |0.060              |5  $\times 10^{-3}$ | 0.073  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M3)**  |       0 |     0|   0|90 |10 | 0 |     0  |9.592              |11  $\times 10^{-3}$| 0.048  |
+| NOT    |           |       0 |     0|   0|98 |1  | 1 |     0  |8.212              |5  $\times 10^{-3}$ | 0.058  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M4)**  |       0 |     0|   0|89 |11 | 0 |     0  |11.944             |11  $\times 10^{-3}$| 0.313  |
+| NOT    |           |       0 |     0|   0|95 |5  | 0 |     0  |10.658             |9   $\times 10^{-3}$| 0.200  |
+Table: Table 40: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the discontinuous, piecewise-linear signals (M1)-(M3). The average MSE, $d_H$ and computational time are also given.
+
+#### Thresholding based results
+In this section, we give the simulation results when the *model.thresh* function from the package is employed at each of the solution path methods. The results are given in Tables 41 and 42 below. We note that for ID, the results are presented for the *sol.idetect_seq* function (and not for the *sol.idetect*), which is the one that should be used when Isolate-Detect is combined with the thresholding model selection algorithm of the *model.thresh* function.
+
+|        |           |$\hat{N} - N$| | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$0$|$1$|$2$| $\geq 3$ | MSE                    | Time (s)|
+| ID     | **(NC1)** | 96|  2|  2|    0     |  93 $\times 10^{-3}$   |  0.283  |
+| NOT    |           | 94|  2|  3|    1     |  94 $\times 10^{-3}$   |  0.018  |
+Table: Table 41: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1). Also the average MSE and computational times for each method are given.
+
+
+|  |  | | | |$\hat{N} - N$| | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)|
+| ID     | **(M1)**  |       0 |     0|   0|98 |2  | 0 |     0  |0.031              |5 $\times10^{-3}$   | 0.033  |
+| NOT    |           |       0 |     0|   0|79 |21 | 0 |     0  |0.044              |28 $\times10^{-3}$  | 0.019  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M2)**  |       0 |     0|   0|97 |2  | 1 |     0  |0.061              |8  $\times 10^{-3}$ | 0.046  |
+| NOT    |           |       0 |     0|   0|95 |2  | 1 |     2  |0.063              |10 $\times 10^{-3}$ | 0.027  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M3)**  |       0 |     0|   0|87 |12 | 0 |     1  |9.946              |15  $\times 10^{-3}$| 0.049  |
+| NOT    |           |       0 |     0|  24|34 |31 | 8 |     3  |106.381            |175 $\times 10^{-3}$| 0.022  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M4)**  |       0 |     0|   0|81 |18 | 1 |     0  |11.842             |11  $\times 10^{-3}$| 0.272  |
+| NOT    |           |       0 |     0|   0|60 |35 | 5 |     0  |17.315             |12  $\times 10^{-3}$| 0.065  |
+Table: Table 42: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the discontinuous, piecewise-linear signals (M1)-(M3). The average MSE, $d_H$ and computational times are also given.
+
+
+#### SDLL based results
+In this section, we give the simulation results when the *model.sdll* function from the package is employed at each of the solution path methods. The results are given in Tables 43 and 44. We note that for ID, the results are presented for the *sol.idetect* function (and not for the *sol.idetect_seq*), which is the one that should be used when Isolate-Detect is combined with the SDLL model selection algorithm of the *model.sdll* function. In addition, we do not present any results when the NOT solution path is employed due to the fact that it should not be used in combination with the *model.sdll* function.
+
+|        |           |$\hat{N} - N$| | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$0$|$1$|$2$| $\geq 3$ | MSE                    | Time (s)|
+| ID     | **(NC1)** | 91|  0|  4|    5     |  0.104                 |  0.132  |
+Table: Table 43: Distribution of $\hat{N} - N$ over 100 simulated data sequences from (NC1). Also the average MSE and computational times are given.
+
+
+|  |  | | | |$\hat{N} - N$| | | | | | |
+|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| Method | Model     |$\leq -3$| $-2$ |$-1$|$0$|$1$|$2$|$\geq 3$| MSE               | $d_H$              |Time (s)|
+| ID     | **(M1)**  |       0 |     0|   0|93 | 2 | 3 |     2  |40 $\times 10^{-3}$|17 $\times10^{-3}$  | 0.032  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M2)**  |       0 |     0|   0|96 |1  | 2 |     1  |41 $\times 10^{-3}$|9 $\times 10^{-3}$  | 0.035  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M3)**  |       0 |     0|   0|90 |5  |2  |     3  |11.802             |17  $\times 10^{-3}$| 0.046  |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+|        |           |         |      |    |   |   |   |        |                   |                    |        |
+| ID     | **(M4)**  |       0 |     0|   0|87 | 11|0  |      2 |12.112             |11 $\times 10^{-3}$ | 0.315  |
+Table: Table 44: Distribution of $\hat{N} - N$ over 100 simulated data sequences of the discontinuous, piecewise-linear signals (M1)-(M4). The average MSE, $d_H$ and computational time are also given.

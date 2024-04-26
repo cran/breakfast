@@ -4,17 +4,19 @@
 \alias{sol.wbs}
 \title{Solution path generation via the Wild Binary Segmentation method}
 \usage{
-sol.wbs(x, M = 10000, systematic.intervals = TRUE, seed = NULL)
+sol.wbs(x, type = "const", M = 10000, systematic.intervals = TRUE, seed = NULL)
 }
 \arguments{
 \item{x}{A numeric vector containing the data to be processed}
+
+\item{type}{The model type considered. Currently \code{type = "const"} is the only accepted value. This assumes that the mean of the input vector is piecewise-constant.}
 
 \item{M}{The maximum number of all data sub-samples at the beginning of the algorithm. The default is
 \code{M = 10000}}
 
 \item{systematic.intervals}{When drawing the sub-intervals, whether to use a systematic (and fixed) or random scheme. The default is \code{systematic.intervals = TRUE}}
 
-\item{seed}{If a random scheme is used, a random seed can be provided so that every time the same sets of random sub-intervals would be drawn. The default is \code{seed = NULL}, which means that this option is not taken}
+\item{seed}{If a random scheme is used, a random seed can be provided so that every time the same sets of random sub-intervals would be drawn. The default is \code{seed = NULL}, which means that this option is not set}
 }
 \value{
 An S3 object of class \code{cptpath}, which contains the following fields: 
@@ -22,12 +24,13 @@ An S3 object of class \code{cptpath}, which contains the following fields:
 \item{solution.path}{Locations of possible change-points in the mean of \code{x}, arranged in decreasing order of change-point importance}
 \item{solution.set}{Empty list}
 \item{x}{Input vector \code{x}}
+\item{type}{The input parameter \code{type}}
 \item{M}{Input parameter \code{M}}
 \item{cands}{Matrix of dimensions length(\code{x}) - 1 by 4. The first two columns are (start, end)-points of the detection intervals of the corresponding possible change-point location in the third column. The fourth column is a measure of strength of the corresponding possible change-point. The order of the rows is the same as the order returned in \code{solution.path}}
 \item{method}{The method used, which has value "wbs" here}
 }
 \description{
-This function arranges all possible change-points in the mean of the input vector in the order of importance, via the Wild Binary Segmentation (WBS) method.
+This function arranges all possible change-in-mean features of the input vector in the order of importance, via the Wild Binary Segmentation (WBS) method.
 }
 \details{
 The Wild Binary Segmentation algorithm is described in 
@@ -39,7 +42,9 @@ sol.wbs(r3)
 }
 \references{
 P. Fryzlewicz (2014). Wild binary segmentation for multiple change-point detection. \emph{The Annals of Statistics}, 42(6), 2243--2281.
+
+R. Baranowski, Y. Chen & P. Fryzlewicz (2019). Narrowest-over-threshold detection of multiple change points and change-point-like features. \emph{Journal of the Royal Statistical Society: Series B}, 81(3), 649--672.
 }
 \seealso{
-\code{\link{sol.idetect}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs2}}
+\code{\link{sol.idetect}}, \code{\link{sol.idetect_seq}}, \code{\link{sol.not}}, \code{\link{sol.tguh}}, \code{\link{sol.wbs2}}
 }

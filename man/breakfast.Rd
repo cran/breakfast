@@ -2,47 +2,64 @@
 % Please edit documentation in R/main.R
 \name{breakfast}
 \alias{breakfast}
-\title{Methods for fast multiple change-point detection and estimation}
+\title{Methods for fast detection of multiple change-points}
 \usage{
-breakfast(x, solution.path = NULL, model.selection = NULL)
+breakfast(
+  x,
+  type = c("const", "lin.cont", "lin.discont"),
+  solution.path = NULL,
+  model.selection = NULL
+)
 }
 \arguments{
 \item{x}{A numeric vector containing the data to be processed}
 
+\item{type}{The type of change-point models fitted to the data; currently supported models are: piecewise constant signals (\code{type = "const"}, chosen by default), piecewise linear and continuous signals (\code{type = "lin.cont"}) and piecewise linear and discontinuous signals (\code{type = "lin.discont"}).}
+
 \item{solution.path}{A string or a vector of strings containing the name(s) of solution path generating method(s);
 if individual methods are accessed via this option, default tuning parameters are used. 
-Alternatively, you can directly access each solution path generating method via \code{sol.[method]}, see below.
-If both \code{solution.path} and \code{model.selection} are unspecified, we return the output from the suggested combinations based on their performance, which are: \code{("idetect", "ic")}, \code{("idetect_seq", "thresh")}, \code{("not", "ic")}, \code{("tguh", "lp")}, \code{("wbs", "ic")} and \code{("wbs2", "sdll")}.
+Alternatively, you can directly access each solution path generating method via \code{sol.[method]}.
+If both \code{solution.path} and \code{model.selection} are unspecified, we return the output from the suggested combinations based on their performance, which depends on \code{type} as below:
+
+When \code{type = "const"}: \code{("idetect", "ic")}, \code{("idetect_seq", "thresh")}, 
+\code{("not", "ic")}, \code{("tguh", "lp")}, \code{("wbs", "ic")}, \code{("wbs2", "sdll")} and \code{("wcm", "gsa")}.
+
+When \code{type = "lin.cont"} or \code{type = "lin.discont"}: \code{("idetect_seq", "thresh")}, 
+\code{("not", "ic")} and \code{("idetect", "sdll")}.
+
 If \code{solution.path} is specified but \code{model.selection} is not, we return the output from the specified \code{solution.path} methods combined with the suggested model selection methods (respectively) as above.
-\itemize{
-\item{"idetect"}{ IDetect, see \link[breakfast]{sol.idetect}} 
-\item{"idetect_seq"}{ Sequential IDetect, see \link[breakfast]{sol.idetect_seq}} 
-\item{"not"}{ Narrowest-Over-Threshold, see \link[breakfast]{sol.not}}
-\item{"tguh"}{ Tail-Greedy Unbalanced Haar, see \link[breakfast]{sol.tguh}}
-\item{"wbs"}{ Wild Binary Segmentation, see \link[breakfast]{sol.wbs}}
-\item{"wbs2"}{ Wild Binary Segmentation 2, see \link[breakfast]{sol.wbs2}}
-\item{"all"}{ All of the above }
+\describe{
+\item{"idetect"}{ IDetect, supporting \code{type = "const", "lin.cont", "lin.discont"}, see \link[breakfast]{sol.idetect}} 
+\item{"idetect_seq"}{ Sequential IDetect, supporting \code{type = "const", "lin.cont", "lin.discont"}, see \link[breakfast]{sol.idetect_seq}} 
+\item{"not"}{ Narrowest-Over-Threshold, supporting \code{type = "const", "lin.cont", "lin.discont"}, see \link[breakfast]{sol.not}}
+\item{"tguh"}{ Tail-Greedy Unbalanced Haar, supporting \code{type = "const"}, see \link[breakfast]{sol.tguh}}
+\item{"wbs"}{ Wild Binary Segmentation, supporting \code{type = "const"}, see \link[breakfast]{sol.wbs}}
+\item{"wbs2"}{ Wild Binary Segmentation 2, supporting \code{type = "const"}, see \link[breakfast]{sol.wbs2}}
+\item{"wcm"}{ Wild Contrast Maximisation, supporting \code{type = "const"} in combination with \link[breakfast]{model.gsa} handling model (ii), see \link[breakfast]{sol.wcm}}
+\item{"all"}{ All of the above that support the \code{type} }
 }}
 
 \item{model.selection}{A string or a vector of strings containing the name(s) of model selection method(s);
 if individual methods are accessed via this option, default tuning parameters are used. 
-Alternatively, you can directly access each model selection method via \code{model.[method]}, see below.
-If both \code{solution.path} and \code{model.selection} are unspecified, we return the output from the suggested combinations based on their performance, which are: \code{("idetect", "ic")}, \code{("idetect_seq", "thresh")}, \code{("not", "ic")}, \code{("tguh", "lp")}, \code{("wbs", "ic")} and \code{("wbs2", "sdll")}.
-If \code{model.selection} is specified but \code{solution.path} is not, we return the output from the specified \code{model.selection} methods combined with the suggested solution path methods (respectively) as above.
-\itemize{
-\item{"ic"}{ Strengthened Schwarz information criterion, see \link[breakfast]{model.ic}}
-\item{"lp"}{ Localised pruning, see \link[breakfast]{model.lp}}
-\item{"sdll"}{ Steepest Drop to Low Levels method, see \link[breakfast]{model.sdll}}
-\item{"thresh"}{ Thresholding, see \link[breakfast]{model.thresh}}
-\item{"all"}{ All of the above }
+Alternatively, you can directly access each model selection method via \code{model.[method]}.
+If both \code{solution.path} and \code{model.selection} are unspecified, we return the output from the suggested combinations based on their performance, see \code{solution.path}.
+If \code{model.selection} is specified but \code{solution.path} is not, we return the output from the specified \code{model.selection} methods combined with the suggested solution path methods (respectively).
+Not all \code{solution.path} methods are supported by all \code{model.selection} methods; check the individual functions for more information.
+\describe{
+\item{"ic"}{ Strengthened Schwarz information criterion, supporting \code{type = "const", "lin.cont", "lin.discont"}, see \link[breakfast]{model.ic}}
+\item{"lp"}{ Localised pruning, supporting \code{type = "const"}, see \link[breakfast]{model.lp}}
+\item{"sdll"}{ Steepest Drop to Low Levels method, supporting \code{type = "const", "lin.cont", "lin.discont"}, see \link[breakfast]{model.sdll}}
+\item{"thresh"}{ Thresholding, supporting \code{type = "const", "lin.cont", "lin.discont"}, see \link[breakfast]{model.thresh}}
+\item{"gsa"}{ gappy Schwarz algorithm, supporting \code{type = "const"} in combination with \link[breakfast]{sol.wcm} handling model (ii), see \link[breakfast]{model.gsa}}
+\item{"all"}{ All of the above that support the given \code{type}}
 }}
 }
 \value{
 An S3 object of class \code{breakfast.cpts}, which contains the following fields:
-\itemize{
+\describe{
 \item{x}{ Input vector \code{x}}
 \item{cptmodel.list}{ A list containing S3 objects of class \code{cptmodel}; each contains the following fields:}
-\itemize{
+\describe{
   \item{solution.path}{ The solution path method used}
   \item{model.selection}{ The model selection method used to return the final change-point estimators object}
   \item{no.of.cpt}{ The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
@@ -52,8 +69,11 @@ An S3 object of class \code{breakfast.cpts}, which contains the following fields
 }
 }
 \description{
-This function estimates the number and locations of change-points in a data sequence,
-which is modelled as a piecewise-constant function plus i.i.d. Gaussian noise. 
+This function estimates the number and locations of change-points in a univariate data sequence,
+which is modelled as (i) a piecewise-constant function plus i.i.d. Gaussian noise, 
+(ii) a piecewise-constant function plus autoregressive time series,  
+(iii) a piecewise-linear and continuous function plus i.i.d. Gaussian noise, or
+(iv) a piecewise-linear and discontinuous function plus i.i.d. Gaussian noise.
 This is carried out via a two-stage procedure combining solution path generation and model selection methodologies.
 }
 \details{
@@ -65,15 +85,17 @@ x <- f + rnorm(length(f)) * .5
 breakfast(x)
 }
 \references{
-A. Anastasiou & P. Fryzlewicz (2019). Detecting multiple generalized change-points by isolating single ones. \emph{arXiv preprint arXiv:1901.10852}.
+A. Anastasiou & P. Fryzlewicz (2022) Detecting multiple generalized change-points by isolating single ones. \emph{Metrika}, 85(2), 141--174.
 
-R. Baranowski, Y. Chen & P. Fryzlewicz (2019). Narrowest-over-threshold detection of multiple change points and change-point-like features. \emph{Journal of the Royal Statistical Society: Series B}, 81(3), 649--672.
+R. Baranowski, Y. Chen & P. Fryzlewicz (2019) Narrowest-over-threshold detection of multiple change points and change-point-like features. \emph{Journal of the Royal Statistical Society: Series B}, 81(3), 649--672.
 
-H. Cho & C. Kirch (2021) Two-stage data segmentation permitting multiscale change points, heavy tails and dependence. \emph{arXiv preprint arXiv:1910.12486}.
+H. Cho & C. Kirch (2022) Two-stage data segmentation permitting multiscale change points, heavy tails and dependence. \emph{Annals of the Institute of Statistical Mathematics}, 74(4), 653--684.
 
-P. Fryzlewicz (2014). Wild binary segmentation for multiple change-point detection. \emph{The Annals of Statistics}, 42(6), 2243--2281.
+H. Cho & P. Fryzlewicz (2024) Multiple change point detection under serial dependence: Wild contrast maximisation and gappy Schwarz algorithm. \emph{Journal of Time Series Analysis}, 45(3): 479--494.
 
-P. Fryzlewicz (2020). Detecting possibly frequent change-points: Wild Binary Segmentation 2 and steepest-drop model selection. \emph{To appear in Journal of the Korean Statistical Society}.
+P. Fryzlewicz (2014) Wild binary segmentation for multiple change-point detection. \emph{The Annals of Statistics}, 42(6), 2243--2281.
 
-P. Fryzlewicz (2018). Tail-greedy bottom-up data decompositions and fast multiple change-point detection. \emph{The Annals of Statistics}, 46(6B), 3390--3421.
+P. Fryzlewicz (2018) Tail-greedy bottom-up data decompositions and fast multiple change-point detection. \emph{The Annals of Statistics}, 46(6B), 3390--3421.
+
+P. Fryzlewicz (2020) Detecting possibly frequent change-points: Wild Binary Segmentation 2 and steepest-drop model selection. \emph{Journal of the Korean Statistical Society}, 49(4), 1027--1070.
 }

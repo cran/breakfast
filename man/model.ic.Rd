@@ -2,7 +2,7 @@
 % Please edit documentation in R/ic.R
 \name{model.ic}
 \alias{model.ic}
-\title{Estimating change-points in the piecewise-constant mean of a noisy data sequence via the strengthened Schwarz information criterion}
+\title{Estimating change-points or change-point-type features in the mean of a noisy data sequence via the strengthened Schwarz information criterion}
 \usage{
 model.ic(cptpath.object, alpha = 1.01, q.max = NULL)
 }
@@ -11,18 +11,21 @@ model.ic(cptpath.object, alpha = 1.01, q.max = NULL)
 
 \item{alpha}{The parameter associated with the sSIC. The default value is 1.01. Note that the SIC is recovered when alpha = 1.}
 
-\item{q.max}{The maximum number of change-points allowed. If nothing or \code{NULL} is provided, the default value of \code{min(100, n/log(n))} (rounded to an integer) will be used.}
+\item{q.max}{The maximum number of features allowed. If nothing or \code{NULL} is provided, the default value of \code{min(100, n/log(n))} (rounded to an integer) will be used.}
 }
 \value{
 An S3 object of class \code{cptmodel}, which contains the following fields: 
 \item{solution.path}{The solution path method used to obtain \code{cptpath.object}}
-\item{model.selection}{The model selection method used to return the final change-point estimators object, here its value is \code{"ic"}}
-\item{no.of.cpt}{The number of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}}
-\item{cpts}{The locations of estimated change-points in the piecewise-constant mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean intervals}
-\item{est}{An estimate of the piecewise-constant mean of the vector \code{cptpath.object$x}; the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points}
+\item{type}{The model type used, inherited from the given \code{cptpath.object}}
+\item{model.selection}{The model selection method used to return the final change-point or change-point-type feature estimators object, here its value is \code{"ic"}}
+\item{no.of.cpt}{The number of estimated features in the mean of the vector \code{cptpath.object$x} based on the given \code{type} of the model}
+\item{cpts}{The locations of estimated features in the mean of the vector \code{cptpath.object$x}. These are the end-points of the corresponding constant-mean or constant-slope intervals}
+\item{est}{An estimate of the mean of the vector \code{cptpath.object$x}; for piecewise-constant signals, the values are the sample means of the data (replicated a suitable number of times) between each pair of consecutive detected change-points; 
+for piecewise-linear but discontinuous signals, the values are based on the estimated linear trend between each pair of consecutive detected change of slopes; 
+for piecewise-linear and continuous signals, it is similar to the previous case but with the continuity constraint enforced, which envolves solving a global least squares problem.}
 }
 \description{
-This function estimates the number and locations of change-points in the piecewise-constant mean of a noisy data sequence via the sSIC (strengthened Schwarz information criterion) method.
+This function estimates the number and locations of change-points or change-point-type features in the mean of a noisy data sequence via the sSIC (strengthened Schwarz information criterion) method.
 }
 \details{
 The model selection method for algorithms that produce nested solution path is described in 
