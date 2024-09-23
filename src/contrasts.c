@@ -3,14 +3,14 @@
 //functions for change-point detection in piecewise constant signal + noise
 void alloc_contrasts(contrasts_t **contrasts, int n_intervals, double *x, int n_obs){
   
-  (*contrasts) = Calloc(1, contrasts_t);
-  (**contrasts).index = Calloc(n_intervals, int);
-  (**contrasts).start = Calloc(n_intervals, int);
-  (**contrasts).end = Calloc(n_intervals, int);
-  (**contrasts).length = Calloc(n_intervals, int);
-  (**contrasts).arg_max = Calloc(n_intervals, int);
-  (**contrasts).max = Calloc(n_intervals, double);
-  (**contrasts).x = Calloc(n_obs, double);
+  (*contrasts) = R_Calloc(1, contrasts_t);
+  (**contrasts).index = R_Calloc(n_intervals, int);
+  (**contrasts).start = R_Calloc(n_intervals, int);
+  (**contrasts).end = R_Calloc(n_intervals, int);
+  (**contrasts).length = R_Calloc(n_intervals, int);
+  (**contrasts).arg_max = R_Calloc(n_intervals, int);
+  (**contrasts).max = R_Calloc(n_intervals, double);
+  (**contrasts).x = R_Calloc(n_obs, double);
   memcpy((**contrasts).x, x, n_obs * sizeof(double));
   (**contrasts).n_obs = n_obs;
   (**contrasts).n_intervals = n_intervals;
@@ -21,14 +21,14 @@ void destroy_contrasts(contrasts_t **contrasts){
   
   if( (*contrasts) != NULL){
     
-    Free((**contrasts).index);
-    Free((**contrasts).start);
-    Free((**contrasts).end);
-    Free((**contrasts).index);
-    Free((**contrasts).arg_max);
-    Free((**contrasts).max);
-    Free((**contrasts).x);
-    Free(*contrasts);
+    R_Free((**contrasts).index);
+    R_Free((**contrasts).start);
+    R_Free((**contrasts).end);
+    R_Free((**contrasts).index);
+    R_Free((**contrasts).arg_max);
+    R_Free((**contrasts).max);
+    R_Free((**contrasts).x);
+    R_Free(*contrasts);
     
     (*contrasts) = NULL;
     
@@ -170,10 +170,10 @@ max_contrast_t slope_contrast(double *x, int n_obs){
     double n_dbl = (double) n_obs;
     double c;
     
-    double *sum_left = Calloc(n_obs, double);
-    double *sum_right = Calloc(n_obs, double);
-    double *lin_sum_left = Calloc(n_obs, double);
-    double *lin_sum_right = Calloc(n_obs, double);
+    double *sum_left = R_Calloc(n_obs, double);
+    double *sum_right = R_Calloc(n_obs, double);
+    double *lin_sum_left = R_Calloc(n_obs, double);
+    double *lin_sum_right = R_Calloc(n_obs, double);
     
     sum_left[0] = x[0];
     lin_sum_left[0] = x[0];
@@ -222,10 +222,10 @@ max_contrast_t slope_contrast(double *x, int n_obs){
     
     max_contrast.max = sqrt(max_contrast.max);
     
-    Free(sum_left);
-    Free(sum_right);
-    Free(lin_sum_left);
-    Free(lin_sum_right);
+    R_Free(sum_left);
+    R_Free(sum_right);
+    R_Free(lin_sum_left);
+    R_Free(lin_sum_right);
     
   }  
   
@@ -251,10 +251,10 @@ max_contrast_t intercept_and_slope_contrast(double *x, int n_obs){
     max_contrast.max = 0;
     max_contrast.arg_max = 0;
     
-    double *sum_left = Calloc(n_obs, double);
-    double *sum_right = Calloc(n_obs, double);
-    double *lin_sum_left = Calloc(n_obs, double);
-    double *lin_sum_right = Calloc(n_obs, double);
+    double *sum_left = R_Calloc(n_obs, double);
+    double *sum_right = R_Calloc(n_obs, double);
+    double *lin_sum_left = R_Calloc(n_obs, double);
+    double *lin_sum_right = R_Calloc(n_obs, double);
     
     sum_left[0] = x[0];
     lin_sum_left[0] = x[0];
@@ -313,10 +313,10 @@ max_contrast_t intercept_and_slope_contrast(double *x, int n_obs){
     
     max_contrast.max = sqrt(max_contrast.max);
       
-    Free(sum_left);
-    Free(sum_right);
-    Free(lin_sum_left);
-    Free(lin_sum_right);
+    R_Free(sum_left);
+    R_Free(sum_right);
+    R_Free(lin_sum_left);
+    R_Free(lin_sum_right);
     
   }  
 
@@ -340,12 +340,12 @@ max_contrast_t intercept_slope_and_quadratic_contrast(double *x, int n_obs){
     double n_dbl = (double) n_obs;
     double c, n_min_c;
 
-    double *sum_left = Calloc(n_obs, double);
-    double *sum_right = Calloc(n_obs, double);
-    double *lin_sum_left = Calloc(n_obs, double);
-    double *lin_sum_right = Calloc(n_obs, double);
-    double *quad_sum_left = Calloc(n_obs, double);
-    double *quad_sum_right = Calloc(n_obs, double);
+    double *sum_left = R_Calloc(n_obs, double);
+    double *sum_right = R_Calloc(n_obs, double);
+    double *lin_sum_left = R_Calloc(n_obs, double);
+    double *lin_sum_right = R_Calloc(n_obs, double);
+    double *quad_sum_left = R_Calloc(n_obs, double);
+    double *quad_sum_right = R_Calloc(n_obs, double);
 
     
     sum_left[0] = x[0];
@@ -425,12 +425,12 @@ max_contrast_t intercept_slope_and_quadratic_contrast(double *x, int n_obs){
     
     max_contrast.max = sqrt(max_contrast.max);
   
-    Free(sum_left);
-    Free(sum_right);
-    Free(lin_sum_left);
-    Free(lin_sum_right);
-    Free(quad_sum_left);
-    Free(quad_sum_right);
+    R_Free(sum_left);
+    R_Free(sum_right);
+    R_Free(lin_sum_left);
+    R_Free(lin_sum_right);
+    R_Free(quad_sum_left);
+    R_Free(quad_sum_right);
 
   }
   
@@ -456,10 +456,10 @@ max_contrast_t intercept_and_volatility_contrast(double *x, int n_obs){
     max_contrast.max = 0;
     max_contrast.arg_max = 0;
     
-    double *sum_left = Calloc(n_obs, double);
-    double *sum_right = Calloc(n_obs, double);
-    double *sum_sq_left = Calloc(n_obs, double);
-    double *sum_sq_right = Calloc(n_obs, double);
+    double *sum_left = R_Calloc(n_obs, double);
+    double *sum_right = R_Calloc(n_obs, double);
+    double *sum_sq_left = R_Calloc(n_obs, double);
+    double *sum_sq_right = R_Calloc(n_obs, double);
     
     sum_left[0] = x[0];
     sum_sq_left[0] = x[0] * x[0];
@@ -517,10 +517,10 @@ max_contrast_t intercept_and_volatility_contrast(double *x, int n_obs){
       
     }
     
-    Free(sum_left);
-    Free(sum_right);
-    Free(sum_sq_left);
-    Free(sum_sq_right);
+    R_Free(sum_left);
+    R_Free(sum_right);
+    R_Free(sum_sq_left);
+    R_Free(sum_sq_right);
     
   }  
   

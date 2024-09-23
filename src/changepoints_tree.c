@@ -26,7 +26,7 @@ void build_tree(cpt_tree_node_t **node, cpt_tree_node_t **parent_node,  int star
     }
     
      
-    int *new_index = Calloc(n_intervals, int);
+    int *new_index = R_Calloc(n_intervals, int);
     int i,j,new_n_intervals=0;
     
     for(i=0; i<n_intervals; i++){
@@ -39,11 +39,11 @@ void build_tree(cpt_tree_node_t **node, cpt_tree_node_t **parent_node,  int star
     if(eval_contrast_fun == NULL){
       
      //if nothing found - clean up, else-create new nodes
-      if(new_n_intervals == 0) Free(new_index);
+      if(new_n_intervals == 0) R_Free(new_index);
       else{
         
-        new_index = Realloc(new_index, new_n_intervals, int);
-        (*node) = Calloc(1, cpt_tree_node_t);
+        new_index = R_Realloc(new_index, new_n_intervals, int);
+        (*node) = R_Calloc(1, cpt_tree_node_t);
         
   
         //struct cpt_tree_node *left_node, *right_node;
@@ -77,11 +77,11 @@ void build_tree(cpt_tree_node_t **node, cpt_tree_node_t **parent_node,  int star
       // so always consider the whole subinterval as well
       max_contrast_t contrast = eval_contrast_fun(&((*contrasts).x[start-1]), end-start+1);
       
-      if(new_n_intervals == 0) Free(new_index);
+      if(new_n_intervals == 0) R_Free(new_index);
       
       if((contrast.max > th) & (new_n_intervals==0)){
 
-        (*node) = Calloc(1, cpt_tree_node_t);
+        (*node) = R_Calloc(1, cpt_tree_node_t);
         (**node).index = NULL;
         (**node).n_intervals = 0;
         (**node).left_node = NULL;
@@ -97,9 +97,9 @@ void build_tree(cpt_tree_node_t **node, cpt_tree_node_t **parent_node,  int star
       } else if(new_n_intervals > 0){
         
         
-        new_index = Realloc(new_index, new_n_intervals, int);
+        new_index = R_Realloc(new_index, new_n_intervals, int);
         
-        (*node) = Calloc(1, cpt_tree_node_t);
+        (*node) = R_Calloc(1, cpt_tree_node_t);
         (**node).index = new_index;
         (**node).n_intervals = new_n_intervals;
         (**node).left_node = NULL;
@@ -180,7 +180,7 @@ int compare_cpts_t(const cpts_t *a, const cpts_t *b, int n_obs){
   if((*a).n_cpt != (*b).n_cpt) return 1;
   else {
     
-    char *tmp = Calloc(n_obs, char);
+    char *tmp = R_Calloc(n_obs, char);
     memset(tmp, 0,  n_obs * sizeof(char));
     
     int i = 0;
@@ -197,7 +197,7 @@ int compare_cpts_t(const cpts_t *a, const cpts_t *b, int n_obs){
        
     } 
     
-    Free(tmp);
+    R_Free(tmp);
     
     return are_different;
     
@@ -209,8 +209,8 @@ int compare_cpts_t(const cpts_t *a, const cpts_t *b, int n_obs){
 solution_path_t *solution_path(contrasts_t *contrasts, eval_contrast_fun_t eval_contrast_fun, int min_dist){
   
   //create the solution path
-  solution_path_t *solution_path = Calloc(1, solution_path_t);
-  (*solution_path).cpts = Calloc(0, cpts_t);
+  solution_path_t *solution_path = R_Calloc(1, solution_path_t);
+  (*solution_path).cpts = R_Calloc(0, cpts_t);
   int len = 0, allocated_len = 0, cpts_not_eqal = 1;
   
   
@@ -218,8 +218,8 @@ solution_path_t *solution_path(contrasts_t *contrasts, eval_contrast_fun_t eval_
   double th = 0.0;
 
   
-  tmp_cpts.cpt = Calloc((*contrasts).n_obs, int);
-  tmp_cpts.index = Calloc((*contrasts).n_obs, int);
+  tmp_cpts.cpt = R_Calloc((*contrasts).n_obs, int);
+  tmp_cpts.index = R_Calloc((*contrasts).n_obs, int);
   
   //build the initial tree
   cpt_tree_node_t * root = NULL;
@@ -229,10 +229,10 @@ solution_path_t *solution_path(contrasts_t *contrasts, eval_contrast_fun_t eval_
  
   while(root != NULL){
     
-    //reallocate space for cpts if necessary
+    //Reallocate space for cpts if necessary
     if(allocated_len == len){
       allocated_len += CPTS_LEN_STEP;
-      (*solution_path).cpts = Realloc((*solution_path).cpts, allocated_len, cpts_t);
+      (*solution_path).cpts = R_Realloc((*solution_path).cpts, allocated_len, cpts_t);
     }
     
     
@@ -250,9 +250,9 @@ solution_path_t *solution_path(contrasts_t *contrasts, eval_contrast_fun_t eval_
     if(cpts_not_eqal != 0){
       
       //allocate memory for cpt locations and other relevant info
-      (*solution_path).cpts[len].cpt = Calloc(tmp_cpts.n_cpt, int);
+      (*solution_path).cpts[len].cpt = R_Calloc(tmp_cpts.n_cpt, int);
       memcpy((*solution_path).cpts[len].cpt, tmp_cpts.cpt, tmp_cpts.n_cpt * sizeof(int));
-      (*solution_path).cpts[len].index = Calloc(tmp_cpts.n_cpt, int);
+      (*solution_path).cpts[len].index = R_Calloc(tmp_cpts.n_cpt, int);
       memcpy((*solution_path).cpts[len].index, tmp_cpts.index, tmp_cpts.n_cpt * sizeof(int));
       (*solution_path).cpts[len].n_cpt = tmp_cpts.n_cpt;
       (*solution_path).cpts[len].min_max = tmp_cpts.min_max;
@@ -268,7 +268,7 @@ solution_path_t *solution_path(contrasts_t *contrasts, eval_contrast_fun_t eval_
   (*solution_path).n_th = len;
   //clean_up  
   destroy_tree(&root);
-  Free(tmp_cpts.cpt);
+  R_Free(tmp_cpts.cpt);
   
   return solution_path;
   
@@ -278,10 +278,10 @@ void destroy_solution_path(solution_path_t **solution_path){
   
   if( (*solution_path) != NULL){
     
-    for(int i=0; i<(**solution_path).n_th; i++) Free((**solution_path).cpts[i].cpt);
-    Free((**solution_path).cpts);
-    Free((**solution_path).th);
-    Free(*solution_path);
+    for(int i=0; i<(**solution_path).n_th; i++) R_Free((**solution_path).cpts[i].cpt);
+    R_Free((**solution_path).cpts);
+    R_Free((**solution_path).th);
+    R_Free(*solution_path);
     
   }
   
@@ -295,8 +295,8 @@ void destroy_tree(cpt_tree_node_t **node){
     
     if( (**node).left_node != NULL) destroy_tree(&((**node).left_node));
     if( (**node).right_node != NULL) destroy_tree(&((**node).right_node));
-    if( (**node).index != NULL) Free((**node).index);
-    Free(*node);
+    if( (**node).index != NULL) R_Free((**node).index);
+    R_Free(*node);
     
   }
   

@@ -1,4 +1,4 @@
-f81042c8960ae6cc978e3eeb386302a0 *DESCRIPTION
+a79ba22ea45b06ae7245a47eb1dd349a *DESCRIPTION
 25842f313149c1d115e780d7d6f6b84f *NAMESPACE
 e03e7afe7622658099437026e968090f *R/IDETECT.R
 b9e0139b290c7cb42c0646b11f8cda39 *R/IDETECT_seq.R
@@ -18,8 +18,8 @@ ddd114ac72cc4cddc66861fc76a47732 *R/thresholding.R
 78cd76f1ccaa2c6b7e009faca6a15e53 *R/tools.R
 ca6823dbfac43d4c7a0318b2c4d73a6e *R/wemgsc.R
 356161e981f20d50e0da8aa079bcc0c5 *R/zzz.R
-7e2b4d064ec71b237f43d6dec2dad527 *build/vignette.rds
-8fe4c8965b54d5528a020835f73c98eb *inst/doc/breakfast-vignette.R
+5013888524fd4a58ee57ea0c69432efe *build/vignette.rds
+62994d0c6cd01b861bd5609bab85194b *inst/doc/breakfast-vignette.R
 37939455a391c5b4f60ccd9f808ac8cb *inst/doc/breakfast-vignette.Rmd
 bad04f701abaccaedeabc19d8510cfee *inst/doc/breakfast-vignette.html
 a18ae25a9ee3a62a50593e6390eb6b39 *man/breakfast-package.Rd
@@ -41,12 +41,12 @@ e40c31013b4ef0f80d50d51c736c42ef *man/sol.idetect.Rd
 6b566e833e326fe24dbe97657746f67e *man/sol.wbs2.Rd
 129e5ab67692282adc8627ff3ebd82bf *man/sol.wcm.Rd
 a5360257af7ffaeafdcc7327b7e1de3c *src/RcppExports.cpp
-dc179b902371bd5b5069a61af82c8780 *src/changepoints_tree.c
+ff73bca962a5e2c9298448a028a7268f *src/changepoints_tree.c
 67939c68250767413ebd6f5ef7fd343c *src/changepoints_tree.h
-ff379d74b61e5f3ecf30bdae3c101d77 *src/contrasts.c
+546e6ca654057a58b692c5d4341749d5 *src/contrasts.c
 04ef40e4f63efeaec7e1cac87251a697 *src/contrasts.h
 3e8037c755e24af4a80d2729ecddd6ba *src/exhaust_bic.cpp
-0d79661e4c92e11d33a17b431213b2ac *src/not.c
+cdc08315be51cb8444a5780f86fd38b9 *src/not.c
 359ef0ac4433c04b5ca553693ace9784 *src/not.h
 0713f2cdad05a1b2beee6c08eda246b7 *src/not_wrapper.cpp
 37939455a391c5b4f60ccd9f808ac8cb *vignettes/breakfast-vignette.Rmd

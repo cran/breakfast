@@ -169,7 +169,7 @@ SEXP not_r_wrapper(SEXP x, SEXP intervals, SEXP method, SEXP contrast_type, SEXP
   
   
   // Depending on the algorithm, either sort the contrasts according to either their values or interval lengths
-  double * p_tmp = Calloc((*p_contrasts).n_intervals, double);
+  double * p_tmp = R_Calloc((*p_contrasts).n_intervals, double);
   
   // v_method = 0 -> not
   // v_method > 1 -> max i.e. wbs
@@ -187,7 +187,7 @@ SEXP not_r_wrapper(SEXP x, SEXP intervals, SEXP method, SEXP contrast_type, SEXP
   //for(int i=0; i<(*p_contrasts).n_intervals; i++) Rprintf("%d ", (*p_contrasts).index[i]+1);
   //Rprintf("\n");
   
-  Free(p_tmp);
+  R_Free(p_tmp);
   
   solution_path_t *p_solution_path; 
   
